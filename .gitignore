@@ -137,3 +137,14 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Symfony
+backend/vendor/
+backend/var/
+backend/.env
+backend/.env.local
+backend/.env.*.local
+backend/config/jwt/
+
+# Docker
+docker-compose.override.yml
