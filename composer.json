@@ -1,0 +1,15 @@
+{
+    "require": {
+        "lexik/jwt-authentication-bundle": "^3.2",
+        "doctrine/orm": "^3.6",
+        "doctrine/doctrine-bundle": "^3.2",
+        "doctrine/doctrine-migrations-bundle": "^4.0",
+        "symfony/validator": "^8.1",
+        "symfony/serializer": "^8.1",
+        "nelmio/cors-bundle": "^2.6",
+        "symfony/security-bundle": "^8.1"
+    },
+    "require-dev": {
+        "symfony/maker-bundle": "^1.67"
+    }
+}
