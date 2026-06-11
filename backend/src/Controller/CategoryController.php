@@ -1,0 +1,75 @@
+<?php
+
+namespace App\Controller;
+
+use App\Entity\Category;
+use App\Repository\CategoryRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Attribute\Route;
+
+#[Route('/api/categories')]
+class CategoryController extends AbstractController
+{
+    #[Route('', name: 'category_list', methods: ['GET'])]
+    public function index(CategoryRepository $repo): JsonResponse
+    {
+        $categories = $repo->findAll();
+        $data = array_map(fn($c) => [
+            'id' => $c->getId(),
+            'name' => $c->getName(),
+        ], $categories);
+
+        return $this->json($data);
+    }
+
+    #[Route('', name: 'category_create', methods: ['POST'])]
+    public function create(
+        Request $request,
+        EntityManagerInterface $em,
+        CategoryRepository $repo
+    ): JsonResponse {
+        $data = json_decode($request->getContent(), true);
+
+        if (empty($data['name'])) {
+            return $this->json(['error' => 'Name is required'], 400);
+        }
+
+        $existing = $repo->findOneBy(['name' => $data['name']]);
+        if ($existing) {
+            return $this->json(['error' => 'Category already exists'], 409);
+        }
+
+        $category = new Category();
+        $category->setName($data['name']);
+        $category->setCreatedAt(new \DateTime());
+
+        $em->persist($category);
+        $em->flush();
+
+        return $this->json([
+            'id' => $category->getId(),
+            'name' => $category->getName(),
+        ], 201);
+    }
+
+    #[Route('/{id}', name: 'category_delete', methods: ['DELETE'])]
+    public function delete(
+        int $id,
+        CategoryRepository $repo,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $category = $repo->find($id);
+
+        if (!$category) {
+            return $this->json(['error' => 'Category not found'], 404);
+        }
+
+        $em->remove($category);
+        $em->flush();
+
+        return $this->json(['message' => 'Category deleted'], 200);
+    }
+}
