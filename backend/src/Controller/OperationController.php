@@ -55,7 +55,9 @@ class OperationController extends AbstractController
         $operation->setAmount($data['amount']);
         $operation->setDate(new \DateTime($data['date']));
         $operation->setCategory($category);
-        $operation->setUser($this->getUser());
+        /** @var \App\Entity\User $user */
+        $user = $this->getUser();
+        $operation->setUser($user);
         $operation->setCreatedAt(new \DateTime());
 
         $em->persist($operation);

@@ -20,8 +20,9 @@ export default function CategoryPage() {
       setName('');
       setError('');
     },
-    onError: (err: any) => {
-      setError(err.response?.data?.error || 'An error occurred');
+    onError: (err: unknown) => {
+      const e = err as { response?: { data?: { error?: string } } };
+      setError(e.response?.data?.error || 'An error occurred');
     }
   });
 
@@ -49,7 +50,6 @@ export default function CategoryPage() {
       <main className="max-w-lg mx-auto px-6 py-8">
         <h2 className="text-2xl font-bold text-[#156064] mb-6">Categories</h2>
 
-        {/* Liste */}
         <div className="bg-white rounded-xl shadow overflow-hidden mb-6">
           {isLoading ? (
             <div className="text-center py-8 text-gray-500">Loading...</div>
@@ -72,7 +72,6 @@ export default function CategoryPage() {
           )}
         </div>
 
-        {/* Formulaire ajout */}
         <div className="bg-white rounded-xl shadow p-6">
           <h3 className="font-bold text-[#156064] mb-4">Add Category</h3>
           <form onSubmit={handleSubmit} className="flex gap-3">

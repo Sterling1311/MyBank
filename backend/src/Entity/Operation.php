@@ -35,7 +35,7 @@ class Operation
     private ?\DateTime $createdAt = null;
 
     #[ORM\Column(nullable: true)]
-    private ?\DateTime $updateAt = null;
+    private ?\DateTime $updatedAt = null;
 
     public function getId(): ?int
     {
@@ -50,7 +50,6 @@ class Operation
     public function setLabel(string $label): static
     {
         $this->label = $label;
-
         return $this;
     }
 
@@ -62,7 +61,6 @@ class Operation
     public function setAmount(string $amount): static
     {
         $this->amount = $amount;
-
         return $this;
     }
 
@@ -74,7 +72,6 @@ class Operation
     public function setDate(\DateTime $date): static
     {
         $this->date = $date;
-
         return $this;
     }
 
@@ -86,7 +83,6 @@ class Operation
     public function setUser(?User $user): static
     {
         $this->user = $user;
-
         return $this;
     }
 
@@ -98,7 +94,6 @@ class Operation
     public function setCategory(?Category $category): static
     {
         $this->category = $category;
-
         return $this;
     }
 
@@ -110,19 +105,17 @@ class Operation
     public function setCreatedAt(\DateTime $createdAt): static
     {
         $this->createdAt = $createdAt;
-
         return $this;
     }
 
-    public function getUpdateAt(): ?\DateTime
+    public function getUpdatedAt(): ?\DateTime
     {
-        return $this->updateAt;
+        return $this->updatedAt;
     }
 
-    public function setUpdateAt(?\DateTime $updateAt): static
+    public function setUpdatedAt(?\DateTime $updatedAt): static
     {
-        $this->updateAt = $updateAt;
-
+        $this->updatedAt = $updatedAt;
         return $this;
     }
 }

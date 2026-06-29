@@ -15,6 +15,7 @@ export default function OperationForm() {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [categoryId, setCategoryId] = useState('');
   const [error, setError] = useState('');
+  const [initialized, setInitialized] = useState(false);
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ['categories'],
@@ -28,13 +29,14 @@ export default function OperationForm() {
   });
 
   useEffect(() => {
-    if (operation) {
+    if (operation && !initialized) {
       setLabel(operation.label);
       setAmount(String(operation.amount));
       setDate(operation.date);
       setCategoryId(String(operation.category.id));
+      setInitialized(true);
     }
-  }, [operation]);
+  }, [operation, initialized]);
 
   const mutation = useMutation({
     mutationFn: (data: object) => isEdit
@@ -44,8 +46,9 @@ export default function OperationForm() {
       queryClient.invalidateQueries({ queryKey: ['operations'] });
       navigate('/dashboard');
     },
-    onError: (err: any) => {
-      setError(err.response?.data?.error || 'An error occurred');
+    onError: (err: unknown) => {
+      const e = err as { response?: { data?: { error?: string } } };
+      setError(e.response?.data?.error || 'An error occurred');
     }
   });
 
