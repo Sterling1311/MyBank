@@ -16,7 +16,7 @@ jobs:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: mybank_test
+          MYSQL_DATABASE: mybank
           MYSQL_USER: mybank_user
           MYSQL_PASSWORD: mybank_pass
         ports:
@@ -39,8 +39,7 @@ jobs:
 
       - name: Create .env file
         working-directory: backend
-        run: |
-          cp .env.example .env
+        run: cp .env.example .env
 
       - name: Install dependencies
         working-directory: backend
@@ -53,12 +52,18 @@ jobs:
           openssl genpkey -algorithm RSA -out config/jwt/private.pem -pkeyopt rsa_keygen_bits:4096
           openssl rsa -pubout -in config/jwt/private.pem -out config/jwt/public.pem
 
+      - name: Create test database
+        run: |
+          mysql -h 127.0.0.1 -u root -proot -e "CREATE DATABASE IF NOT EXISTS mybank_test;"
+          mysql -h 127.0.0.1 -u root -proot -e "GRANT ALL PRIVILEGES ON mybank_test.* TO 'mybank_user'@'%';"
+          mysql -h 127.0.0.1 -u root -proot -e "FLUSH PRIVILEGES;"
+
       - name: Run migrations
         working-directory: backend
         env:
           APP_ENV: test
           APP_SECRET: testsecret123
-          DATABASE_URL: mysql://mybank_user:mybank_pass@127.0.0.1:3306/mybank_test?serverVersion=8.0
+          DATABASE_URL: mysql://mybank_user:mybank_pass@127.0.0.1:3306/mybank?serverVersion=8.0
           JWT_SECRET_KEY: '%kernel.project_dir%/config/jwt/private.pem'
           JWT_PUBLIC_KEY: '%kernel.project_dir%/config/jwt/public.pem'
           JWT_PASSPHRASE: ''
@@ -69,7 +74,7 @@ jobs:
         env:
           APP_ENV: test
           APP_SECRET: testsecret123
-          DATABASE_URL: mysql://mybank_user:mybank_pass@127.0.0.1:3306/mybank_test?serverVersion=8.0
+          DATABASE_URL: mysql://mybank_user:mybank_pass@127.0.0.1:3306/mybank?serverVersion=8.0
           JWT_SECRET_KEY: '%kernel.project_dir%/config/jwt/private.pem'
           JWT_PUBLIC_KEY: '%kernel.project_dir%/config/jwt/public.pem'
           JWT_PASSPHRASE: ''
