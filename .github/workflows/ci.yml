@@ -37,6 +37,11 @@ jobs:
           extensions: pdo, pdo_mysql, zip, sodium
           coverage: none
 
+      - name: Create .env file
+        working-directory: backend
+        run: |
+          cp .env.example .env
+
       - name: Install dependencies
         working-directory: backend
         run: composer install --no-interaction --prefer-dist
