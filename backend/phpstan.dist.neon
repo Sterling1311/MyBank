@@ -5,8 +5,8 @@ parameters:
     ignoreErrors:
         - message: '#type mapping mismatch#'
         - message: '#is unused#'
-        - message: '#no value type specified in iterable type array#'
-        - message: '#does not specify its types#'
-        - message: '#will always evaluate to true#'
+        - message: '#iterable type#'
+        - message: '#generic interface#'
+        - message: '#always evaluate#'
     symfony:
         containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
