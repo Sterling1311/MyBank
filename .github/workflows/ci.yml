@@ -63,6 +63,7 @@ jobs:
         env:
           APP_ENV: test
           APP_SECRET: testsecret123
+          KERNEL_CLASS: App\Kernel
           DATABASE_URL: mysql://mybank_user:mybank_pass@127.0.0.1:3306/mybank?serverVersion=8.0
           JWT_SECRET_KEY: '%kernel.project_dir%/config/jwt/private.pem'
           JWT_PUBLIC_KEY: '%kernel.project_dir%/config/jwt/public.pem'
@@ -74,6 +75,7 @@ jobs:
         env:
           APP_ENV: test
           APP_SECRET: testsecret123
+          KERNEL_CLASS: App\Kernel
           DATABASE_URL: mysql://mybank_user:mybank_pass@127.0.0.1:3306/mybank?serverVersion=8.0
           JWT_SECRET_KEY: '%kernel.project_dir%/config/jwt/private.pem'
           JWT_PUBLIC_KEY: '%kernel.project_dir%/config/jwt/public.pem'
