@@ -5,8 +5,5 @@ parameters:
     ignoreErrors:
         - message: '#type mapping mismatch#'
         - message: '#is unused#'
-        - message: '#iterable type#'
-        - message: '#generic interface#'
-        - message: '#always evaluate#'
     symfony:
         containerXmlPath: var/cache/dev/App_KernelDevDebugContainer.xml
