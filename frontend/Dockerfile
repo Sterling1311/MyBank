@@ -4,7 +4,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --legacy-peer-deps
 COPY . .
-ARG VITE_API_URL
+ARG VITE_API_URL=https://mybank-backend.fly.dev
 ENV VITE_API_URL=$VITE_API_URL
 RUN npm run build
 
