@@ -16,4 +16,7 @@ RUN composer install --no-interaction --prefer-dist --no-dev --optimize-autoload
 
 EXPOSE 8080
 
-CMD ["php", "-S", "0.0.0.0:8080", "-t", "public"]
+CMD mkdir -p config/jwt && \
+    echo "$JWT_PRIVATE_KEY" > config/jwt/private.pem && \
+    echo "$JWT_PUBLIC_KEY" > config/jwt/public.pem && \
+    php -S 0.0.0.0:8080 -t public
