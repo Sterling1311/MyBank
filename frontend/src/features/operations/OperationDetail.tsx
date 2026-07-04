@@ -33,6 +33,7 @@ export default function OperationDetail() {
         <h1 className="text-xl font-bold">🏦 MyBank</h1>
         <div className="flex gap-4">
           <a href="/dashboard" className="hover:text-[#F8E16C]">Dashboard</a>
+          <a href="/budget" className="hover:text-[#F8E16C]">Budget</a>
           <a href="/categories" className="hover:text-[#F8E16C]">Categories</a>
         </div>
       </nav>

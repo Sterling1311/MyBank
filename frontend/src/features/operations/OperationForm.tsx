@@ -10,6 +10,7 @@ export default function OperationForm() {
   const queryClient = useQueryClient();
   const isEdit = Boolean(id);
 
+  const [operationType, setOperationType] = useState<'income' | 'expense'>('expense');
   const [label, setLabel] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -31,7 +32,8 @@ export default function OperationForm() {
   useEffect(() => {
     if (operation && !initialized) {
       setLabel(operation.label);
-      setAmount(String(operation.amount));
+      setAmount(String(Math.abs(Number(operation.amount))));
+      setOperationType(Number(operation.amount) >= 0 ? 'income' : 'expense');
       setDate(operation.date);
       setCategoryId(String(operation.category.id));
       setInitialized(true);
@@ -58,20 +60,27 @@ export default function OperationForm() {
       setError('All fields are required');
       return;
     }
+    const finalAmount = operationType === 'expense'
+      ? -Math.abs(parseFloat(amount))
+      : Math.abs(parseFloat(amount));
+
     mutation.mutate({
       label,
-      amount: parseFloat(amount),
+      amount: finalAmount,
       date,
       category_id: parseInt(categoryId),
     });
   };
 
+  const filteredCategories = categories.filter(c => c.type === operationType);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-[#156064] text-white px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold">🏦 MyBank</h1>
+        <h1 className="text-xl font-bold">MyBank</h1>
         <div className="flex gap-4 items-center">
           <a href="/dashboard" className="hover:text-[#F8E16C]">Dashboard</a>
+          <a href="/budget" className="hover:text-[#F8E16C]">Budget</a>
           <a href="/categories" className="hover:text-[#F8E16C]">Categories</a>
         </div>
       </nav>
@@ -83,70 +92,70 @@ export default function OperationForm() {
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Label *</label>
-              <input
-                type="text"
-                value={label}
-                onChange={e => setLabel(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#00C49A]"
-                placeholder="Groceries"
-              />
+              <label className="block text-sm font-medium text-gray-700 mb-2">Operation Type</label>
+              <div className="flex gap-3">
+                <button type="button" onClick={() => { setOperationType('income'); setCategoryId(''); }}
+                  className={`flex-1 py-3 rounded-lg font-medium border-2 transition-colors ${operationType === 'income' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-white border-gray-200 text-gray-500 hover:border-green-300'}`}>
+                  Income
+                </button>
+                <button type="button" onClick={() => { setOperationType('expense'); setCategoryId(''); }}
+                  className={`flex-1 py-3 rounded-lg font-medium border-2 transition-colors ${operationType === 'expense' ? 'bg-red-50 border-red-500 text-red-700' : 'bg-white border-gray-200 text-gray-500 hover:border-red-300'}`}>
+                  Expense
+                </button>
+              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Amount * (negative = expense)</label>
-              <input
-                type="number"
-                step="0.01"
-                value={amount}
-                onChange={e => setAmount(e.target.value)}
+              <label className="block text-sm font-medium text-gray-700 mb-1">Label *</label>
+              <input type="text" value={label} onChange={e => setLabel(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#00C49A]"
-                placeholder="-45.50"
-              />
+                placeholder="Groceries" />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Amount * ({operationType === 'expense' ? 'will be negative' : 'will be positive'})
+              </label>
+              <input type="number" step="0.01" min="0" value={amount} onChange={e => setAmount(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#00C49A]"
+                placeholder="45.50" />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Date *</label>
-              <input
-                type="date"
-                value={date}
-                onChange={e => setDate(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#00C49A]"
-              />
+              <input type="date" value={date} onChange={e => setDate(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#00C49A]" />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Category *</label>
-              <select
-                value={categoryId}
-                onChange={e => setCategoryId(e.target.value)}
-                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#00C49A]"
-              >
+              <select value={categoryId} onChange={e => setCategoryId(e.target.value)}
+                className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#00C49A]">
                 <option value="">Select a category</option>
-                {categories.map(c => (
+                {filteredCategories.map(c => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
               </select>
+              <p className="text-sm text-gray-400 mt-1">
+                {"Can't find your category? "}
+                <a href={`/categories?returnTo=/operations${isEdit ? `/${id}/edit` : '/new'}`}
+                  className="text-[#00C49A] hover:underline font-medium">
+                  Create one here
+                </a>
+              </p>
             </div>
 
-            {error && (
-              <p className="text-sm text-red-500 bg-red-50 p-3 rounded-lg">{error}</p>
-            )}
+            {error && <p className="text-sm text-red-500 bg-red-50 p-3 rounded-lg">{error}</p>}
 
             <div className="flex gap-3 pt-2">
-              <button
-                type="button"
-                onClick={() => navigate('/dashboard')}
-                className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition-colors"
-              >
+              <button type="button" onClick={() => navigate('/dashboard')}
+                className="flex-1 border border-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-50 transition-colors">
                 Cancel
               </button>
-              <button
-                type="submit"
-                disabled={mutation.isPending}
-                className="flex-1 bg-[#00C49A] text-white py-2 rounded-lg hover:bg-[#156064] transition-colors disabled:opacity-50"
-              >
+              <button type="submit" disabled={mutation.isPending}
+                className={`flex-1 text-white py-2 rounded-lg transition-colors disabled:opacity-50 ${operationType === 'expense' ? 'bg-red-500 hover:bg-red-700' : 'bg-green-500 hover:bg-green-700'}`}>
                 {mutation.isPending ? 'Saving...' : 'Save Operation'}
               </button>
             </div>

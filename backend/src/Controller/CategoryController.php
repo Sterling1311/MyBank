@@ -18,8 +18,9 @@ class CategoryController extends AbstractController
     {
         $categories = $repo->findAll();
         $data = array_map(fn($c) => [
-            'id' => $c->getId(),
+            'id'   => $c->getId(),
             'name' => $c->getName(),
+            'type' => $c->getType(),
         ], $categories);
 
         return $this->json($data);
@@ -44,15 +45,39 @@ class CategoryController extends AbstractController
 
         $category = new Category();
         $category->setName($data['name']);
+        $category->setType($data['type'] ?? null);
         $category->setCreatedAt(new \DateTime());
 
         $em->persist($category);
         $em->flush();
 
         return $this->json([
-            'id' => $category->getId(),
+            'id'   => $category->getId(),
             'name' => $category->getName(),
+            'type' => $category->getType(),
         ], 201);
+    }
+
+    #[Route('/suggestions', name: 'category_suggestions', methods: ['GET'])]
+    public function suggestions(): JsonResponse
+    {
+        return $this->json([
+            'income' => [
+                ['name' => 'Travail', 'type' => 'income'],
+                ['name' => 'Aides',   'type' => 'income'],
+                ['name' => 'Autres',  'type' => 'income'],
+            ],
+            'expense' => [
+                ['name' => 'Alimentation', 'type' => 'expense'],
+                ['name' => 'Transport',    'type' => 'expense'],
+                ['name' => 'Logement',     'type' => 'expense'],
+                ['name' => 'Santé',        'type' => 'expense'],
+                ['name' => 'Loisirs',      'type' => 'expense'],
+                ['name' => 'Shopping',     'type' => 'expense'],
+                ['name' => 'Abonnements',  'type' => 'expense'],
+                ['name' => 'Divers',       'type' => 'expense'],
+            ],
+        ]);
     }
 
     #[Route('/{id}', name: 'category_delete', methods: ['DELETE'])]

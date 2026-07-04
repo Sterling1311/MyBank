@@ -38,9 +38,16 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Operation::class, mappedBy: 'user', orphanRemoval: true)]
     private Collection $operations;
 
+    /**
+     * @var Collection<int, Budget>
+     */
+    #[ORM\OneToMany(targetEntity: Budget::class, mappedBy: 'user', orphanRemoval: true)]
+    private Collection $budgets;
+
     public function __construct()
     {
         $this->operations = new ArrayCollection();
+        $this->budgets = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -125,6 +132,36 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
                 $operation->setUser(null);
             }
         }
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Budget>
+     */
+    public function getBudgets(): Collection
+    {
+        return $this->budgets;
+    }
+
+    public function addBudget(Budget $budget): static
+    {
+        if (!$this->budgets->contains($budget)) {
+            $this->budgets->add($budget);
+            $budget->setUser($this);
+        }
+
+        return $this;
+    }
+
+    public function removeBudget(Budget $budget): static
+    {
+        if ($this->budgets->removeElement($budget)) {
+            // set the owning side to null (unless already changed)
+            if ($budget->getUser() === $this) {
+                $budget->setUser(null);
+            }
+        }
+
         return $this;
     }
 }

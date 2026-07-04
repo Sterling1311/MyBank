@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../auth/AuthContext';
+import { Link } from 'react-router-dom';
 import type { Operation, Category } from '../../types/index';
 import api from '../../services/api';
 
@@ -35,12 +36,12 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-
       <nav className="bg-[#156064] text-white px-6 py-4 flex justify-between items-center">
         <h1 className="text-xl font-bold">🏦 MyBank</h1>
         <div className="flex gap-4 items-center">
-          <a href="/dashboard" className="hover:text-[#F8E16C]">Dashboard</a>
-          <a href="/categories" className="hover:text-[#F8E16C]">Categories</a>
+          <Link to="/dashboard" className="hover:text-[#F8E16C]">Dashboard</Link>
+          <Link to="/budget" className="hover:text-[#F8E16C]">Budget</Link>
+          <Link to="/categories" className="hover:text-[#F8E16C]">Categories</Link>
           <button onClick={logout} className="bg-[#00C49A] px-4 py-1 rounded-lg hover:bg-white hover:text-[#156064] transition-colors">Logout</button>
         </div>
       </nav>
@@ -49,7 +50,7 @@ export default function Dashboard() {
 
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-[#156064]">My Operations</h2>
-          <a href="/operations/new" className="bg-[#00C49A] text-white px-4 py-2 rounded-lg hover:bg-[#156064] transition-colors font-medium">Add Operation</a>
+          <Link to="/operations/new" className="bg-[#00C49A] text-white px-4 py-2 rounded-lg hover:bg-[#156064] transition-colors font-medium">Add Operation</Link>
         </div>
 
         <div className="mb-4">
@@ -65,7 +66,7 @@ export default function Dashboard() {
           <div className="text-center py-12 text-gray-500">Loading...</div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
-            No operations yet. <a href="/operations/new" className="text-[#00C49A]">Add one!</a>
+            No operations yet. <Link to="/operations/new" className="text-[#00C49A]">Add one!</Link>
           </div>
         ) : (
           <div className="bg-white rounded-xl shadow overflow-hidden">
@@ -83,7 +84,7 @@ export default function Dashboard() {
                 {filtered.map((op, idx) => (
                   <tr key={op.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F5FFFE]'}>
                     <td className="px-6 py-3">
-                      <a href={`/operations/${op.id}`} className="text-[#156064] hover:underline font-medium">{op.label}</a>
+                      <Link to={`/operations/${op.id}`} className="text-[#156064] hover:underline font-medium">{op.label}</Link>
                     </td>
                     <td className={`px-6 py-3 font-bold ${amountClass(Number(op.amount))}`}>
                       {amountPrefix(Number(op.amount))}{Number(op.amount).toFixed(2)} €
@@ -94,13 +95,8 @@ export default function Dashboard() {
                     </td>
                     <td className="px-6 py-3">
                       <div className="flex gap-2">
-                        <a href={`/operations/${op.id}/edit`} className="text-[#00C49A] hover:text-[#156064] font-medium">Edit</a>
-                        <button
-                          onClick={() => { if (confirm('Delete this operation?')) deleteOp.mutate(op.id); }}
-                          className="text-red-500 hover:text-red-700 font-medium"
-                        >
-                          Delete
-                        </button>
+                        <Link to={`/operations/${op.id}/edit`} className="text-[#00C49A] hover:text-[#156064] font-medium">Edit</Link>
+                        <button onClick={() => { if (confirm('Delete this operation?')) deleteOp.mutate(op.id); }} className="text-red-500 hover:text-red-700 font-medium">Delete</button>
                       </div>
                     </td>
                   </tr>

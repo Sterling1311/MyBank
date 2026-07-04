@@ -6,6 +6,7 @@ import Dashboard from './features/operations/OperationList';
 import OperationForm from './features/operations/OperationForm';
 import OperationDetail from './features/operations/OperationDetail';
 import CategoryPage from './features/categories/CategoryPage';
+import BudgetPage from './features/budget/BudgetPage';
 
 const queryClient = new QueryClient();
 
@@ -26,6 +27,7 @@ function App() {
             <Route path="/operations/:id" element={<ProtectedRoute><OperationDetail /></ProtectedRoute>} />
             <Route path="/operations/:id/edit" element={<ProtectedRoute><OperationForm /></ProtectedRoute>} />
             <Route path="/categories" element={<ProtectedRoute><CategoryPage /></ProtectedRoute>} />
+            <Route path="/budget" element={<ProtectedRoute><BudgetPage /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         </BrowserRouter>
