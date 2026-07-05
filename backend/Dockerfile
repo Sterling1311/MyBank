@@ -16,7 +16,5 @@ RUN composer install --no-interaction --prefer-dist --no-dev --optimize-autoload
 
 EXPOSE 8080
 
-CMD mkdir -p config/jwt && \
-    echo "$JWT_PRIVATE_KEY" > config/jwt/private.pem && \
-    echo "$JWT_PUBLIC_KEY" > config/jwt/public.pem && \
+CMD php bin/console doctrine:migrations:migrate --no-interaction --env=prod --allow-no-migration || true && \
     php -S 0.0.0.0:8080 -t public
