@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import type { Category } from '../../types/index';
+import type { Category, Operation } from '../../types/index';
 import api from '../../services/api';
 
 interface BudgetItem {
@@ -25,6 +25,7 @@ export default function BudgetPage() {
   const [categoryId, setCategoryId] = useState('');
   const [amount, setAmount] = useState('');
   const [error, setError] = useState('');
+  const [selectedBudget, setSelectedBudget] = useState<BudgetItem | null>(null);
 
   const { data: budgetData, isLoading } = useQuery<BudgetData>({
     queryKey: ['budgets'],
@@ -34,6 +35,11 @@ export default function BudgetPage() {
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ['categories'],
     queryFn: () => api.get('/api/categories').then(r => r.data),
+  });
+
+  const { data: operations = [] } = useQuery<Operation[]>({
+    queryKey: ['operations'],
+    queryFn: () => api.get('/api/operations').then(r => r.data),
   });
 
   const expenseCategories = categories.filter(c => !c.type || c.type === 'expense');
@@ -54,7 +60,10 @@ export default function BudgetPage() {
 
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.delete(`/api/budgets/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['budgets'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      setSelectedBudget(null);
+    },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -73,6 +82,10 @@ export default function BudgetPage() {
     remaining: b.remaining,
   }));
 
+  const selectedOperations = selectedBudget
+    ? operations.filter(o => o.category.id === selectedBudget.category.id)
+    : [];
+
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-[#156064] text-white px-6 py-4 flex justify-between items-center">
@@ -86,6 +99,7 @@ export default function BudgetPage() {
 
       <main className="max-w-5xl mx-auto px-6 py-8">
 
+        {/* Solde global */}
         <div className="bg-white rounded-xl shadow p-6 mb-6">
           <h2 className="text-lg font-medium text-gray-500 mb-1">Total Balance</h2>
           <p className={`text-4xl font-bold ${balanceClass}`}>
@@ -96,6 +110,7 @@ export default function BudgetPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
+          {/* Pie Chart */}
           <div className="bg-white rounded-xl shadow p-6">
             <h2 className="text-xl font-bold text-[#156064] mb-4">Spending by Category</h2>
             {pieData.length === 0 ? (
@@ -122,6 +137,7 @@ export default function BudgetPage() {
             )}
           </div>
 
+          {/* Formulaire allocation */}
           <div className="bg-white rounded-xl shadow p-6">
             <h2 className="text-xl font-bold text-[#156064] mb-4">Allocate Budget</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -144,7 +160,8 @@ export default function BudgetPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow overflow-hidden">
+        {/* Budget Tracker */}
+        <div className="bg-white rounded-xl shadow overflow-hidden mb-6">
           <h2 className="text-xl font-bold text-[#156064] p-6 border-b">Budget Tracker</h2>
           {isLoading ? (
             <div className="text-center py-8 text-gray-400">Loading...</div>
@@ -153,12 +170,22 @@ export default function BudgetPage() {
           ) : (
             <div className="divide-y">
               {(budgetData?.budgets ?? []).map((b, idx) => (
-                <div key={b.id} className={`p-6 ${idx % 2 === 0 ? 'bg-white' : 'bg-[#F5FFFE]'}`}>
+                <div
+                  key={b.id}
+                  className={`p-6 cursor-pointer transition-colors ${selectedBudget?.id === b.id ? 'bg-[#E8F8F5] border-l-4 border-[#00C49A]' : idx % 2 === 0 ? 'bg-white hover:bg-gray-50' : 'bg-[#F5FFFE] hover:bg-gray-50'}`}
+                  onClick={() => setSelectedBudget(selectedBudget?.id === b.id ? null : b)}
+                >
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-bold text-[#156064]">{b.category.name}</span>
                     <div className="flex items-center gap-4">
+                      <span className="text-xs text-gray-400">Click to see operations</span>
                       <span className="text-sm text-gray-500">{b.percentage_used}% used</span>
-                      <button onClick={() => { if (confirm(`Delete budget for ${b.category.name}?`)) deleteMutation.mutate(b.id); }} className="text-red-400 hover:text-red-600 text-sm">Delete</button>
+                      <button
+                        onClick={e => { e.stopPropagation(); if (confirm(`Delete budget for ${b.category.name}?`)) deleteMutation.mutate(b.id); }}
+                        className="text-red-400 hover:text-red-600 text-sm"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-3 mb-2">
@@ -177,6 +204,53 @@ export default function BudgetPage() {
             </div>
           )}
         </div>
+
+        {/* Historique des opérations de la catégorie sélectionnée */}
+        {selectedBudget && (
+          <div className="bg-white rounded-xl shadow overflow-hidden">
+            <div className="p-6 border-b flex justify-between items-center">
+              <h2 className="text-xl font-bold text-[#156064]">
+                Operations — {selectedBudget.category.name}
+              </h2>
+              <button onClick={() => setSelectedBudget(null)} className="text-gray-400 hover:text-gray-600 text-sm">
+                Close ✕
+              </button>
+            </div>
+            {selectedOperations.length === 0 ? (
+              <div className="text-center py-8 text-gray-400">No operations in this category yet</div>
+            ) : (
+              <table className="w-full">
+                <thead className="bg-gray-50 text-gray-500 text-sm">
+                  <tr>
+                    <th className="text-left px-6 py-3">Label</th>
+                    <th className="text-left px-6 py-3">Amount</th>
+                    <th className="text-left px-6 py-3">Date</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {selectedOperations.map((op, idx) => (
+                    <tr key={op.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F5FFFE]'}>
+                      <td className="px-6 py-3 font-medium text-[#156064]">{op.label}</td>
+                      <td className={`px-6 py-3 font-bold ${Number(op.amount) >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+                        {Number(op.amount) >= 0 ? '+' : ''}{Number(op.amount).toFixed(2)} €
+                      </td>
+                      <td className="px-6 py-3 text-gray-500">{op.date}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-gray-50 border-t">
+                  <tr>
+                    <td className="px-6 py-3 font-bold text-[#156064]">Total spent</td>
+                    <td className="px-6 py-3 font-bold text-red-500">
+                      -{selectedBudget.spent.toFixed(2)} €
+                    </td>
+                    <td></td>
+                  </tr>
+                </tfoot>
+              </table>
+            )}
+          </div>
+        )}
       </main>
     </div>
   );
