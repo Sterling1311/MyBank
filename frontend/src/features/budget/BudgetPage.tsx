@@ -86,7 +86,6 @@ export default function BudgetPage() {
 
       <main className="max-w-5xl mx-auto px-6 py-8">
 
-        {/* Solde global */}
         <div className="bg-white rounded-xl shadow p-6 mb-6">
           <h2 className="text-lg font-medium text-gray-500 mb-1">Total Balance</h2>
           <p className={`text-4xl font-bold ${balanceClass}`}>
@@ -97,7 +96,6 @@ export default function BudgetPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
-          {/* Pie Chart */}
           <div className="bg-white rounded-xl shadow p-6">
             <h2 className="text-xl font-bold text-[#156064] mb-4">Spending by Category</h2>
             {pieData.length === 0 ? (
@@ -105,19 +103,25 @@ export default function BudgetPage() {
             ) : (
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" outerRadius={100} dataKey="value" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={100}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                  >
                     {pieData.map((_, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value: number) => `${value.toFixed(2)} €`} />
+                  <Tooltip formatter={(value) => `${Number(value).toFixed(2)} €`} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
             )}
           </div>
 
-          {/* Formulaire allocation */}
           <div className="bg-white rounded-xl shadow p-6">
             <h2 className="text-xl font-bold text-[#156064] mb-4">Allocate Budget</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -140,7 +144,6 @@ export default function BudgetPage() {
           </div>
         </div>
 
-        {/* Liste des budgets */}
         <div className="bg-white rounded-xl shadow overflow-hidden">
           <h2 className="text-xl font-bold text-[#156064] p-6 border-b">Budget Tracker</h2>
           {isLoading ? (

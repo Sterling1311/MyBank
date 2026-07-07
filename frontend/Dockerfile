@@ -1,5 +1,5 @@
 FROM node:24-alpine AS builder
-
+# Build date: 2026-07-05
 WORKDIR /app
 COPY package*.json ./
 RUN npm ci --legacy-peer-deps

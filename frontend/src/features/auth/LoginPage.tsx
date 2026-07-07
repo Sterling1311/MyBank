@@ -16,7 +16,6 @@ export default function LoginPage() {
     e.preventDefault();
     setError('');
     setLoading(true);
-
     try {
       if (mode === 'register') {
         await api.post('/api/auth/register', { email, password });
@@ -24,9 +23,11 @@ export default function LoginPage() {
         setError('Account created! Please log in.');
         return;
       }
-
       const response = await api.post('/api/auth/login', { email, password });
+      console.log('Token received:', response.data.token);
+      console.log('Calling login...');
       login(response.data.token);
+      console.log('Token in localStorage:', localStorage.getItem('token'));
       navigate('/dashboard');
     } catch (err: unknown) {
       const e = err as { response?: { data?: { error?: string } } };
@@ -43,7 +44,6 @@ export default function LoginPage() {
           <h1 className="text-3xl font-bold text-[#156064]">🏦 MyBank</h1>
           <p className="text-gray-500 mt-1">Manage your expenses</p>
         </div>
-
         <div className="flex mb-6 bg-gray-100 rounded-lg p-1">
           <button
             onClick={() => setMode('login')}
@@ -58,7 +58,6 @@ export default function LoginPage() {
             Sign up
           </button>
         </div>
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email</label>
@@ -72,7 +71,6 @@ export default function LoginPage() {
               placeholder="you@example.com"
             />
           </div>
-
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Password</label>
             <input
@@ -85,11 +83,9 @@ export default function LoginPage() {
               placeholder="••••••••"
             />
           </div>
-
           {error && (
             <p className="text-sm text-red-500 bg-red-50 p-3 rounded-lg">{error}</p>
           )}
-
           <button
             type="submit"
             disabled={loading}
