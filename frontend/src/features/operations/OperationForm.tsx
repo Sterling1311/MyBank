@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import Navbar from '../../components/Navbar';
 import type { Category, Operation } from '../../types/index';
 import api from '../../services/api';
 
@@ -64,26 +65,14 @@ export default function OperationForm() {
       ? -Math.abs(parseFloat(amount))
       : Math.abs(parseFloat(amount));
 
-    mutation.mutate({
-      label,
-      amount: finalAmount,
-      date,
-      category_id: parseInt(categoryId),
-    });
+    mutation.mutate({ label, amount: finalAmount, date, category_id: parseInt(categoryId) });
   };
 
   const filteredCategories = categories.filter(c => c.type === operationType);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-[#156064] text-white px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold">MyBank</h1>
-        <div className="flex gap-4 items-center">
-          <a href="/dashboard" className="hover:text-[#F8E16C]">Dashboard</a>
-          <a href="/budget" className="hover:text-[#F8E16C]">Budget</a>
-          <a href="/categories" className="hover:text-[#F8E16C]">Categories</a>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="max-w-lg mx-auto px-6 py-8">
         <div className="bg-white rounded-xl shadow p-8">
@@ -92,17 +81,16 @@ export default function OperationForm() {
           </h2>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Operation Type</label>
               <div className="flex gap-3">
                 <button type="button" onClick={() => { setOperationType('income'); setCategoryId(''); }}
                   className={`flex-1 py-3 rounded-lg font-medium border-2 transition-colors ${operationType === 'income' ? 'bg-green-50 border-green-500 text-green-700' : 'bg-white border-gray-200 text-gray-500 hover:border-green-300'}`}>
-                  Income
+                  ↑ Income
                 </button>
                 <button type="button" onClick={() => { setOperationType('expense'); setCategoryId(''); }}
                   className={`flex-1 py-3 rounded-lg font-medium border-2 transition-colors ${operationType === 'expense' ? 'bg-red-50 border-red-500 text-red-700' : 'bg-white border-gray-200 text-gray-500 hover:border-red-300'}`}>
-                  Expense
+                  ↓ Expense
                 </button>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import Navbar from '../../components/Navbar';
 import type { Operation } from '../../types/index';
 import api from '../../services/api';
 
@@ -29,14 +30,7 @@ export default function OperationDetail() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-[#156064] text-white px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold">🏦 MyBank</h1>
-        <div className="flex gap-4">
-          <a href="/dashboard" className="hover:text-[#F8E16C]">Dashboard</a>
-          <a href="/budget" className="hover:text-[#F8E16C]">Budget</a>
-          <a href="/categories" className="hover:text-[#F8E16C]">Categories</a>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="max-w-lg mx-auto px-6 py-8">
         <button onClick={() => navigate('/dashboard')} className="text-[#00C49A] mb-6 flex items-center gap-1 hover:underline">
@@ -73,10 +67,8 @@ export default function OperationDetail() {
             <a href={`/operations/${id}/edit`} className="flex-1 text-center bg-[#00C49A] text-white py-2 rounded-lg hover:bg-[#156064] transition-colors font-medium">
               Edit Operation
             </a>
-            <button
-              onClick={() => { if (confirm('Delete this operation?')) deleteOp.mutate(); }}
-              className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-700 transition-colors font-medium"
-            >
+            <button onClick={() => { if (confirm('Delete this operation?')) deleteOp.mutate(); }}
+              className="flex-1 bg-red-500 text-white py-2 rounded-lg hover:bg-red-700 transition-colors font-medium">
               Delete Operation
             </button>
           </div>

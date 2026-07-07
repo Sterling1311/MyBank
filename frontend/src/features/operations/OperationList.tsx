@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../auth/AuthContext';
 import { Link } from 'react-router-dom';
+import Navbar from '../../components/Navbar';
 import type { Operation, Category } from '../../types/index';
 import api from '../../services/api';
 
 export default function Dashboard() {
-  const { logout } = useAuth();
   const queryClient = useQueryClient();
   const [filterCategory, setFilterCategory] = useState<string>('');
 
@@ -36,18 +35,9 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-[#156064] text-white px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold">🏦 MyBank</h1>
-        <div className="flex gap-4 items-center">
-          <Link to="/dashboard" className="hover:text-[#F8E16C]">Dashboard</Link>
-          <Link to="/budget" className="hover:text-[#F8E16C]">Budget</Link>
-          <Link to="/categories" className="hover:text-[#F8E16C]">Categories</Link>
-          <button onClick={logout} className="bg-[#00C49A] px-4 py-1 rounded-lg hover:bg-white hover:text-[#156064] transition-colors">Logout</button>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
-
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-[#156064]">My Operations</h2>
           <Link to="/operations/new" className="bg-[#00C49A] text-white px-4 py-2 rounded-lg hover:bg-[#156064] transition-colors font-medium">Add Operation</Link>

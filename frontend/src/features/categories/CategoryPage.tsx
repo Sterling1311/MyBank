@@ -1,6 +1,7 @@
 ﻿import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
+import Navbar from '../../components/Navbar';
 import type { Category } from '../../types/index';
 import api from '../../services/api';
 
@@ -47,21 +48,14 @@ export default function CategoryPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-[#156064] text-white px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold">MyBank</h1>
-        <div className="flex gap-4">
-          <a href="/dashboard" className="hover:text-[#F8E16C]">Dashboard</a>
-          <a href="/budget" className="hover:text-[#F8E16C]">Budget</a>
-          <a href="/categories" className="hover:text-[#F8E16C]">Categories</a>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="max-w-lg mx-auto px-6 py-8">
 
         {returnTo && (
           <div className="mb-6">
             <a href={returnTo} className="text-[#00C49A] hover:underline font-medium">
-              Back to operation form
+              ← Back to operation form
             </a>
           </div>
         )}
@@ -81,7 +75,7 @@ export default function CategoryPage() {
                   <ul>
                     {expenseCategories.map((c, idx) => (
                       <li key={c.id} className={`flex justify-between items-center px-6 py-4 ${idx % 2 === 0 ? 'bg-white' : 'bg-[#F5FFFE]'}`}>
-                        <span className="font-medium text-[#156064]">{c.name}</span>
+                        <span className="font-medium text-[#156064]">🏷 {c.name}</span>
                         <button onClick={() => { if (confirm(`Delete "${c.name}"?`)) deleteMutation.mutate(c.id); }} className="text-red-500 hover:text-red-700 text-sm">Delete</button>
                       </li>
                     ))}
@@ -94,7 +88,7 @@ export default function CategoryPage() {
                   <ul>
                     {incomeCategories.map((c, idx) => (
                       <li key={c.id} className={`flex justify-between items-center px-6 py-4 ${idx % 2 === 0 ? 'bg-white' : 'bg-[#F5FFFE]'}`}>
-                        <span className="font-medium text-[#156064]">{c.name}</span>
+                        <span className="font-medium text-[#156064]">🏷 {c.name}</span>
                         <button onClick={() => { if (confirm(`Delete "${c.name}"?`)) deleteMutation.mutate(c.id); }} className="text-red-500 hover:text-red-700 text-sm">Delete</button>
                       </li>
                     ))}
@@ -107,7 +101,7 @@ export default function CategoryPage() {
                   <ul>
                     {otherCategories.map((c, idx) => (
                       <li key={c.id} className={`flex justify-between items-center px-6 py-4 ${idx % 2 === 0 ? 'bg-white' : 'bg-[#F5FFFE]'}`}>
-                        <span className="font-medium text-[#156064]">{c.name}</span>
+                        <span className="font-medium text-[#156064]">🏷 {c.name}</span>
                         <button onClick={() => { if (confirm(`Delete "${c.name}"?`)) deleteMutation.mutate(c.id); }} className="text-red-500 hover:text-red-700 text-sm">Delete</button>
                       </li>
                     ))}
@@ -130,8 +124,12 @@ export default function CategoryPage() {
               </button>
             </div>
             <div className="flex gap-3">
-              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Category name" className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#00C49A]" />
-              <button type="submit" disabled={createMutation.isPending} className="bg-[#00C49A] text-white px-4 py-2 rounded-lg hover:bg-[#156064] transition-colors disabled:opacity-50">Add</button>
+              <input type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Category name"
+                className="flex-1 border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#00C49A]" />
+              <button type="submit" disabled={createMutation.isPending}
+                className="bg-[#00C49A] text-white px-4 py-2 rounded-lg hover:bg-[#156064] transition-colors disabled:opacity-50">
+                Add
+              </button>
             </div>
             {error && <p className="text-red-500 text-sm">{error}</p>}
           </form>
@@ -140,7 +138,7 @@ export default function CategoryPage() {
         {returnTo && (
           <div className="mt-6 text-center">
             <a href={returnTo} className="bg-[#156064] text-white px-6 py-3 rounded-lg hover:bg-[#00C49A] transition-colors font-medium">
-              Back to operation form
+              ← Back to operation form
             </a>
           </div>
         )}

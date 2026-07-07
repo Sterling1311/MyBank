@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import Navbar from '../../components/Navbar';
 import type { Category, Operation } from '../../types/index';
 import api from '../../services/api';
 
@@ -88,18 +89,10 @@ export default function BudgetPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-[#156064] text-white px-6 py-4 flex justify-between items-center">
-        <h1 className="text-xl font-bold">🏦 MyBank</h1>
-        <div className="flex gap-4 items-center">
-          <a href="/dashboard" className="hover:text-[#F8E16C]">Dashboard</a>
-          <a href="/budget" className="hover:text-[#F8E16C] text-[#F8E16C]">Budget</a>
-          <a href="/categories" className="hover:text-[#F8E16C]">Categories</a>
-        </div>
-      </nav>
+      <Navbar />
 
       <main className="max-w-5xl mx-auto px-6 py-8">
 
-        {/* Solde global */}
         <div className="bg-white rounded-xl shadow p-6 mb-6">
           <h2 className="text-lg font-medium text-gray-500 mb-1">Total Balance</h2>
           <p className={`text-4xl font-bold ${balanceClass}`}>
@@ -110,7 +103,6 @@ export default function BudgetPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
-          {/* Pie Chart */}
           <div className="bg-white rounded-xl shadow p-6">
             <h2 className="text-xl font-bold text-[#156064] mb-4">Spending by Category</h2>
             {pieData.length === 0 ? (
@@ -137,7 +129,6 @@ export default function BudgetPage() {
             )}
           </div>
 
-          {/* Formulaire allocation */}
           <div className="bg-white rounded-xl shadow p-6">
             <h2 className="text-xl font-bold text-[#156064] mb-4">Allocate Budget</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -160,7 +151,6 @@ export default function BudgetPage() {
           </div>
         </div>
 
-        {/* Budget Tracker */}
         <div className="bg-white rounded-xl shadow overflow-hidden mb-6">
           <h2 className="text-xl font-bold text-[#156064] p-6 border-b">Budget Tracker</h2>
           {isLoading ? (
@@ -178,7 +168,7 @@ export default function BudgetPage() {
                   <div className="flex justify-between items-center mb-2">
                     <span className="font-bold text-[#156064]">{b.category.name}</span>
                     <div className="flex items-center gap-4">
-                      <span className="text-xs text-gray-400">Click to see operations</span>
+                      <span className="text-xs text-gray-400 hidden sm:block">Click to see operations</span>
                       <span className="text-sm text-gray-500">{b.percentage_used}% used</span>
                       <button
                         onClick={e => { e.stopPropagation(); if (confirm(`Delete budget for ${b.category.name}?`)) deleteMutation.mutate(b.id); }}
@@ -205,7 +195,6 @@ export default function BudgetPage() {
           )}
         </div>
 
-        {/* Historique des opérations de la catégorie sélectionnée */}
         {selectedBudget && (
           <div className="bg-white rounded-xl shadow overflow-hidden">
             <div className="p-6 border-b flex justify-between items-center">
