@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './features/auth/AuthContext';
 import LoginPage from './features/auth/LoginPage';
 import Dashboard from './features/operations/OperationList';
@@ -20,6 +21,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrowserRouter>
+          <Toaster position="top-right" toastOptions={{
+            success: { style: { background: '#00C49A', color: 'white' } },
+            error: { style: { background: '#E74C3C', color: 'white' } },
+          }} />
           <Routes>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

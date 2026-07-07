@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import Navbar from '../../components/Navbar';
 import type { Operation, Category } from '../../types/index';
 import api from '../../services/api';
@@ -21,7 +22,13 @@ export default function Dashboard() {
 
   const deleteOp = useMutation({
     mutationFn: (id: number) => api.delete(`/api/operations/${id}`),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['operations'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['operations'] });
+      toast.success('Operation deleted successfully!');
+    },
+    onError: () => {
+      toast.error('Failed to delete operation');
+    }
   });
 
   const filtered = filterCategory

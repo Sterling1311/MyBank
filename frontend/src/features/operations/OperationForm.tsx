@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 import Navbar from '../../components/Navbar';
 import type { Category, Operation } from '../../types/index';
 import api from '../../services/api';
@@ -47,11 +48,13 @@ export default function OperationForm() {
       : api.post('/api/operations', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['operations'] });
+      toast.success(isEdit ? 'Operation updated!' : 'Operation created!');
       navigate('/dashboard');
     },
     onError: (err: unknown) => {
       const e = err as { response?: { data?: { error?: string } } };
       setError(e.response?.data?.error || 'An error occurred');
+      toast.error('Failed to save operation');
     }
   });
 
