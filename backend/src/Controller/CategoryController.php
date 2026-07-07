@@ -14,17 +14,17 @@ use Symfony\Component\Routing\Attribute\Route;
 class CategoryController extends AbstractController
 {
     #[Route('', name: 'category_list', methods: ['GET'])]
-    public function index(CategoryRepository $repo): JsonResponse
-    {
-        $categories = $repo->findAll();
-        $data = array_map(fn($c) => [
-            'id'   => $c->getId(),
-            'name' => $c->getName(),
-            'type' => $c->getType(),
-        ], $categories);
+public function index(CategoryRepository $repo): JsonResponse
+{
+    $categories = $repo->findBy([], ['name' => 'ASC']);
+    $data = array_map(fn($c) => [
+        'id'   => $c->getId(),
+        'name' => $c->getName(),
+        'type' => $c->getType(),
+    ], $categories);
 
-        return $this->json($data);
-    }
+    return $this->json($data);
+}
 
     #[Route('', name: 'category_create', methods: ['POST'])]
     public function create(
