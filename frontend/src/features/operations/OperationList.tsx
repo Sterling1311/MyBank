@@ -36,7 +36,6 @@ export default function Dashboard() {
     : operations;
 
   const total = filtered.reduce((sum, o) => sum + Number(o.amount), 0);
-
   const amountClass = (amount: number) => amount >= 0 ? 'text-green-600' : 'text-red-500';
   const amountPrefix = (amount: number) => amount >= 0 ? '+' : '';
 
@@ -44,10 +43,10 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
-      <main className="max-w-5xl mx-auto px-6 py-8">
+      <main className="max-w-5xl mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold text-[#156064]">My Operations</h2>
-          <Link to="/operations/new" className="bg-[#00C49A] text-white px-4 py-2 rounded-lg hover:bg-[#156064] transition-colors font-medium">Add Operation</Link>
+          <Link to="/operations/new" className="bg-[#00C49A] text-white px-4 py-2 rounded-lg hover:bg-[#156064] transition-colors font-medium text-sm">Add Operation</Link>
         </div>
 
         <div className="mb-4">
@@ -66,50 +65,85 @@ export default function Dashboard() {
             No operations yet. <Link to="/operations/new" className="text-[#00C49A]">Add one!</Link>
           </div>
         ) : (
-          <div className="bg-white rounded-xl shadow overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-[#156064] text-white">
-                <tr>
-                  <th className="text-left px-6 py-3">Label</th>
-                  <th className="text-left px-6 py-3">Amount</th>
-                  <th className="text-left px-6 py-3">Date</th>
-                  <th className="text-left px-6 py-3">Category</th>
-                  <th className="text-left px-6 py-3">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((op, idx) => (
-                  <tr key={op.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F5FFFE]'}>
-                    <td className="px-6 py-3">
-                      <Link to={`/operations/${op.id}`} className="text-[#156064] hover:underline font-medium">{op.label}</Link>
-                    </td>
-                    <td className={`px-6 py-3 font-bold ${amountClass(Number(op.amount))}`}>
-                      {amountPrefix(Number(op.amount))}{Number(op.amount).toFixed(2)} €
-                    </td>
-                    <td className="px-6 py-3 text-gray-600">{op.date}</td>
-                    <td className="px-6 py-3">
-                      <span className="bg-[#F8E16C] text-[#156064] px-2 py-1 rounded-full text-sm font-medium">{op.category.name}</span>
-                    </td>
-                    <td className="px-6 py-3">
-                      <div className="flex gap-2">
-                        <Link to={`/operations/${op.id}/edit`} className="text-[#00C49A] hover:text-[#156064] font-medium">Edit</Link>
-                        <button onClick={() => { if (confirm('Delete this operation?')) deleteOp.mutate(op.id); }} className="text-red-500 hover:text-red-700 font-medium">Delete</button>
-                      </div>
-                    </td>
+          <>
+            {/* Desktop — tableau */}
+            <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-[#156064] text-white">
+                  <tr>
+                    <th className="text-left px-6 py-3">Label</th>
+                    <th className="text-left px-6 py-3">Amount</th>
+                    <th className="text-left px-6 py-3">Date</th>
+                    <th className="text-left px-6 py-3">Category</th>
+                    <th className="text-left px-6 py-3">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-              <tfoot className="bg-gray-50 border-t">
-                <tr>
-                  <td className="px-6 py-3 font-bold text-[#156064]">Total</td>
-                  <td className={`px-6 py-3 font-bold ${amountClass(total)}`}>
-                    {amountPrefix(total)}{total.toFixed(2)} €
-                  </td>
-                  <td colSpan={3}></td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {filtered.map((op, idx) => (
+                    <tr key={op.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F5FFFE]'}>
+                      <td className="px-6 py-3">
+                        <Link to={`/operations/${op.id}`} className="text-[#156064] hover:underline font-medium">{op.label}</Link>
+                      </td>
+                      <td className={`px-6 py-3 font-bold ${amountClass(Number(op.amount))}`}>
+                        {amountPrefix(Number(op.amount))}{Number(op.amount).toFixed(2)} €
+                      </td>
+                      <td className="px-6 py-3 text-gray-600">{op.date}</td>
+                      <td className="px-6 py-3">
+                        <span className="bg-[#F8E16C] text-[#156064] px-2 py-1 rounded-full text-sm font-medium">{op.category.name}</span>
+                      </td>
+                      <td className="px-6 py-3">
+                        <div className="flex gap-2">
+                          <Link to={`/operations/${op.id}/edit`} className="text-[#00C49A] hover:text-[#156064] font-medium">Edit</Link>
+                          <button onClick={() => { if (confirm('Delete this operation?')) deleteOp.mutate(op.id); }} className="text-red-500 hover:text-red-700 font-medium">Delete</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-gray-50 border-t">
+                  <tr>
+                    <td className="px-6 py-3 font-bold text-[#156064]">Total</td>
+                    <td className={`px-6 py-3 font-bold ${amountClass(total)}`}>
+                      {amountPrefix(total)}{total.toFixed(2)} €
+                    </td>
+                    <td colSpan={3}></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            {/* Mobile — cards */}
+            <div className="md:hidden space-y-3">
+              {filtered.map(op => (
+                <div key={op.id} className="bg-white rounded-xl shadow p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <Link to={`/operations/${op.id}`} className="font-bold text-[#156064] text-lg">{op.label}</Link>
+                    <span className={`font-bold text-lg ${amountClass(Number(op.amount))}`}>
+                      {amountPrefix(Number(op.amount))}{Number(op.amount).toFixed(2)} €
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <div className="flex gap-2 items-center">
+                      <span className="bg-[#F8E16C] text-[#156064] px-2 py-1 rounded-full text-xs font-medium">{op.category.name}</span>
+                      <span className="text-gray-400 text-sm">{op.date}</span>
+                    </div>
+                    <div className="flex gap-3">
+                      <Link to={`/operations/${op.id}/edit`} className="text-[#00C49A] font-medium text-sm">Edit</Link>
+                      <button onClick={() => { if (confirm('Delete this operation?')) deleteOp.mutate(op.id); }} className="text-red-500 font-medium text-sm">Delete</button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {/* Total mobile */}
+              <div className="bg-white rounded-xl shadow p-4 flex justify-between items-center">
+                <span className="font-bold text-[#156064]">Total</span>
+                <span className={`font-bold text-lg ${amountClass(total)}`}>
+                  {amountPrefix(total)}{total.toFixed(2)} €
+                </span>
+              </div>
+            </div>
+          </>
         )}
       </main>
     </div>
