@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import Navbar from '../../components/Navbar';
 import type { Category, Operation } from '../../types/index';
 import api from '../../services/api';
@@ -19,7 +19,20 @@ interface BudgetData {
   budgets: BudgetItem[];
 }
 
+interface MonthlySummary {
+  month: string;
+  income: number;
+  expense: number;
+  balance: number;
+}
+
 const COLORS = ['#156064', '#00C49A', '#F8E16C', '#E74C3C', '#9B59B6', '#3498DB', '#E67E22', '#1ABC9C'];
+
+function getMonthLabel(month: string) {
+  const [year, m] = month.split('-');
+  const date = new Date(Number(year), Number(m) - 1);
+  return date.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
+}
 
 export default function BudgetPage() {
   const queryClient = useQueryClient();
@@ -39,8 +52,13 @@ export default function BudgetPage() {
   });
 
   const { data: operations = [] } = useQuery<Operation[]>({
-    queryKey: ['operations'],
+    queryKey: ['operations', 'all'],
     queryFn: () => api.get('/api/operations').then(r => r.data),
+  });
+
+  const { data: summary = [] } = useQuery<MonthlySummary[]>({
+    queryKey: ['operations-summary'],
+    queryFn: () => api.get('/api/operations/summary').then(r => r.data),
   });
 
   const expenseCategories = categories.filter(c => !c.type || c.type === 'expense');
@@ -79,8 +97,13 @@ export default function BudgetPage() {
   const pieData = (budgetData?.budgets ?? []).map(b => ({
     name: b.category.name,
     value: b.spent,
-    allocated: b.allocated_amount,
-    remaining: b.remaining,
+  }));
+
+  const chartData = summary.map(s => ({
+    month: getMonthLabel(s.month),
+    Income: Math.round(s.income * 100) / 100,
+    Expense: Math.round(s.expense * 100) / 100,
+    Balance: Math.round(s.balance * 100) / 100,
   }));
 
   const selectedOperations = selectedBudget
@@ -93,6 +116,7 @@ export default function BudgetPage() {
 
       <main className="max-w-5xl mx-auto px-6 py-8">
 
+        {/* Solde global */}
         <div className="bg-white rounded-xl shadow p-6 mb-6">
           <h2 className="text-lg font-medium text-gray-500 mb-1">Total Balance</h2>
           <p className={`text-4xl font-bold ${balanceClass}`}>
@@ -101,8 +125,27 @@ export default function BudgetPage() {
           <p className="text-sm text-gray-400 mt-1">Sum of all your operations</p>
         </div>
 
+        {/* Graphique d'évolution mensuelle */}
+        {chartData.length > 0 && (
+          <div className="bg-white rounded-xl shadow p-6 mb-6">
+            <h2 className="text-xl font-bold text-[#156064] mb-4">Monthly Evolution</h2>
+            <ResponsiveContainer width="100%" height={280}>
+              <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#666' }} />
+                <YAxis tick={{ fontSize: 12, fill: '#666' }} />
+                <Tooltip formatter={(value: number) => `${value.toFixed(2)} €`} />
+                <Legend />
+                <Bar dataKey="Income" fill="#00C49A" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Expense" fill="#E74C3C" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
+          {/* Pie Chart */}
           <div className="bg-white rounded-xl shadow p-6">
             <h2 className="text-xl font-bold text-[#156064] mb-4">Spending by Category</h2>
             {pieData.length === 0 ? (
@@ -129,6 +172,7 @@ export default function BudgetPage() {
             )}
           </div>
 
+          {/* Formulaire allocation */}
           <div className="bg-white rounded-xl shadow p-6">
             <h2 className="text-xl font-bold text-[#156064] mb-4">Allocate Budget</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -151,6 +195,7 @@ export default function BudgetPage() {
           </div>
         </div>
 
+        {/* Budget Tracker */}
         <div className="bg-white rounded-xl shadow overflow-hidden mb-6">
           <h2 className="text-xl font-bold text-[#156064] p-6 border-b">Budget Tracker</h2>
           {isLoading ? (
@@ -195,6 +240,7 @@ export default function BudgetPage() {
           )}
         </div>
 
+        {/* Historique opérations */}
         {selectedBudget && (
           <div className="bg-white rounded-xl shadow overflow-hidden">
             <div className="p-6 border-b flex justify-between items-center">

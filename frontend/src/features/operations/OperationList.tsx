@@ -6,13 +6,37 @@ import Navbar from '../../components/Navbar';
 import type { Operation, Category } from '../../types/index';
 import api from '../../services/api';
 
+function getCurrentMonth() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function getMonthLabel(month: string) {
+  const [year, m] = month.split('-');
+  const date = new Date(Number(year), Number(m) - 1);
+  return date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+}
+
+function getPrevMonth(month: string) {
+  const [year, m] = month.split('-');
+  const date = new Date(Number(year), Number(m) - 2);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function getNextMonth(month: string) {
+  const [year, m] = month.split('-');
+  const date = new Date(Number(year), Number(m));
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+}
+
 export default function Dashboard() {
   const queryClient = useQueryClient();
   const [filterCategory, setFilterCategory] = useState<string>('');
+  const [currentMonth, setCurrentMonth] = useState(getCurrentMonth());
 
   const { data: operations = [], isLoading: loadingOps } = useQuery<Operation[]>({
-    queryKey: ['operations'],
-    queryFn: () => api.get('/api/operations').then(r => r.data),
+    queryKey: ['operations', currentMonth],
+    queryFn: () => api.get(`/api/operations?month=${currentMonth}`).then(r => r.data),
   });
 
   const { data: categories = [] } = useQuery<Category[]>({
@@ -23,12 +47,10 @@ export default function Dashboard() {
   const deleteOp = useMutation({
     mutationFn: (id: number) => api.delete(`/api/operations/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['operations'] });
+      queryClient.invalidateQueries({ queryKey: ['operations', currentMonth] });
       toast.success('Operation deleted successfully!');
     },
-    onError: () => {
-      toast.error('Failed to delete operation');
-    }
+    onError: () => toast.error('Failed to delete operation'),
   });
 
   const filtered = filterCategory
@@ -36,37 +58,89 @@ export default function Dashboard() {
     : operations;
 
   const total = filtered.reduce((sum, o) => sum + Number(o.amount), 0);
+  const totalIncome = filtered.filter(o => Number(o.amount) > 0).reduce((sum, o) => sum + Number(o.amount), 0);
+  const totalExpense = filtered.filter(o => Number(o.amount) < 0).reduce((sum, o) => sum + Number(o.amount), 0);
+
   const amountClass = (amount: number) => amount >= 0 ? 'text-green-600' : 'text-red-500';
   const amountPrefix = (amount: number) => amount >= 0 ? '+' : '';
+  const isCurrentMonth = currentMonth === getCurrentMonth();
 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
 
       <main className="max-w-5xl mx-auto px-4 py-6">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold text-[#156064]">My Operations</h2>
-          <Link to="/operations/new" className="bg-[#00C49A] text-white px-4 py-2 rounded-lg hover:bg-[#156064] transition-colors font-medium text-sm">Add Operation</Link>
+
+        {/* Sélecteur de mois */}
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={() => setCurrentMonth(getPrevMonth(currentMonth))}
+            className="bg-white border border-gray-200 rounded-lg px-4 py-2 hover:bg-gray-50 transition-colors text-[#156064] font-medium"
+          >
+            ← Prev
+          </button>
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-[#156064] capitalize">
+              {getMonthLabel(currentMonth)}
+            </h2>
+            {!isCurrentMonth && (
+              <button
+                onClick={() => setCurrentMonth(getCurrentMonth())}
+                className="text-sm text-[#00C49A] hover:underline mt-1"
+              >
+                Back to current month
+              </button>
+            )}
+          </div>
+          <button
+            onClick={() => setCurrentMonth(getNextMonth(currentMonth))}
+            disabled={isCurrentMonth}
+            className="bg-white border border-gray-200 rounded-lg px-4 py-2 hover:bg-gray-50 transition-colors text-[#156064] font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            Next →
+          </button>
         </div>
 
-        <div className="mb-4">
+        {/* Résumé du mois */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="bg-white rounded-xl shadow p-4 text-center">
+            <p className="text-sm text-gray-400 mb-1">Income</p>
+            <p className="text-xl font-bold text-green-600">+{totalIncome.toFixed(2)} €</p>
+          </div>
+          <div className="bg-white rounded-xl shadow p-4 text-center">
+            <p className="text-sm text-gray-400 mb-1">Expense</p>
+            <p className="text-xl font-bold text-red-500">{totalExpense.toFixed(2)} €</p>
+          </div>
+          <div className="bg-white rounded-xl shadow p-4 text-center">
+            <p className="text-sm text-gray-400 mb-1">Balance</p>
+            <p className={`text-xl font-bold ${amountClass(total)}`}>
+              {amountPrefix(total)}{total.toFixed(2)} €
+            </p>
+          </div>
+        </div>
+
+        <div className="flex justify-between items-center mb-4">
           <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} className="border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:border-[#00C49A]">
             <option value="">All Categories</option>
             {categories.map(c => (
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
+          <Link to="/operations/new" className="bg-[#00C49A] text-white px-4 py-2 rounded-lg hover:bg-[#156064] transition-colors font-medium text-sm">
+            Add Operation
+          </Link>
         </div>
 
         {loadingOps ? (
           <div className="text-center py-12 text-gray-500">Loading...</div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
-            No operations yet. <Link to="/operations/new" className="text-[#00C49A]">Add one!</Link>
+            No operations for this month.{' '}
+            <Link to="/operations/new" className="text-[#00C49A]">Add one!</Link>
           </div>
         ) : (
           <>
-            {/* Desktop — tableau */}
+            {/* Desktop */}
             <div className="hidden md:block bg-white rounded-xl shadow overflow-hidden">
               <table className="w-full">
                 <thead className="bg-[#156064] text-white">
@@ -112,7 +186,7 @@ export default function Dashboard() {
               </table>
             </div>
 
-            {/* Mobile — cards */}
+            {/* Mobile cards */}
             <div className="md:hidden space-y-3">
               {filtered.map(op => (
                 <div key={op.id} className="bg-white rounded-xl shadow p-4">
@@ -134,8 +208,6 @@ export default function Dashboard() {
                   </div>
                 </div>
               ))}
-
-              {/* Total mobile */}
               <div className="bg-white rounded-xl shadow p-4 flex justify-between items-center">
                 <span className="font-bold text-[#156064]">Total</span>
                 <span className={`font-bold text-lg ${amountClass(total)}`}>

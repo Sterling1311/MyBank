@@ -15,9 +15,32 @@ use Symfony\Component\Routing\Attribute\Route;
 class OperationController extends AbstractController
 {
     #[Route('', name: 'operation_list', methods: ['GET'])]
-    public function index(OperationRepository $repo): JsonResponse
+    public function index(Request $request, OperationRepository $repo): JsonResponse
     {
-        $operations = $repo->findBy(['user' => $this->getUser()]);
+        $month = $request->query->get('month'); // format: 2025-07
+
+        if ($month) {
+            [$year, $m] = explode('-', $month);
+            $start = new \DateTime("$year-$m-01");
+            $end = (clone $start)->modify('last day of this month');
+
+            $operations = $repo->createQueryBuilder('o')
+                ->where('o.user = :user')
+                ->andWhere('o.date >= :start')
+                ->andWhere('o.date <= :end')
+                ->setParameter('user', $this->getUser())
+                ->setParameter('start', $start)
+                ->setParameter('end', $end)
+                ->orderBy('o.date', 'DESC')
+                ->getQuery()
+                ->getResult();
+        } else {
+            $operations = $repo->findBy(
+                ['user' => $this->getUser()],
+                ['date' => 'DESC']
+            );
+        }
+
         $data = array_map(fn($o) => [
             'id'         => $o->getId(),
             'label'      => $o->getLabel(),
@@ -33,6 +56,31 @@ class OperationController extends AbstractController
         return $this->json($data);
     }
 
+    #[Route('/summary', name: 'operation_summary', methods: ['GET'])]
+    public function summary(OperationRepository $repo): JsonResponse
+    {
+        $operations = $repo->findBy(['user' => $this->getUser()]);
+
+        $summary = [];
+        foreach ($operations as $op) {
+            $key = $op->getDate()->format('Y-m');
+            if (!isset($summary[$key])) {
+                $summary[$key] = ['month' => $key, 'income' => 0, 'expense' => 0, 'balance' => 0];
+            }
+            $amount = (float) $op->getAmount();
+            if ($amount >= 0) {
+                $summary[$key]['income'] += $amount;
+            } else {
+                $summary[$key]['expense'] += abs($amount);
+            }
+            $summary[$key]['balance'] += $amount;
+        }
+
+        ksort($summary);
+
+        return $this->json(array_values($summary));
+    }
+
     #[Route('', name: 'operation_create', methods: ['POST'])]
     public function create(
         Request $request,
@@ -42,7 +90,7 @@ class OperationController extends AbstractController
         $data = json_decode($request->getContent(), true);
 
         if (empty($data['label']) || !isset($data['amount']) || empty($data['date']) || empty($data['category_id'])) {
-            return $this->json(['error' => 'label, amount, date and category_id are required'], 400);
+            return $this->json(['error' => 'Missing required fields'], 400);
         }
 
         $category = $categoryRepo->find($data['category_id']);
@@ -52,12 +100,10 @@ class OperationController extends AbstractController
 
         $operation = new Operation();
         $operation->setLabel($data['label']);
-        $operation->setAmount($data['amount']);
+        $operation->setAmount((string) $data['amount']);
         $operation->setDate(new \DateTime($data['date']));
         $operation->setCategory($category);
-        /** @var \App\Entity\User $user */
-        $user = $this->getUser();
-        $operation->setUser($user);
+        $operation->setUser($this->getUser());
         $operation->setCreatedAt(new \DateTime());
 
         $em->persist($operation);
@@ -85,15 +131,14 @@ class OperationController extends AbstractController
         }
 
         return $this->json([
-            'id'         => $operation->getId(),
-            'label'      => $operation->getLabel(),
-            'amount'     => $operation->getAmount(),
-            'date'       => $operation->getDate()->format('Y-m-d'),
-            'category'   => [
+            'id'       => $operation->getId(),
+            'label'    => $operation->getLabel(),
+            'amount'   => $operation->getAmount(),
+            'date'     => $operation->getDate()->format('Y-m-d'),
+            'category' => [
                 'id'   => $operation->getCategory()->getId(),
                 'name' => $operation->getCategory()->getName(),
             ],
-            'created_at' => $operation->getCreatedAt()->format('Y-m-d H:i:s'),
         ]);
     }
 
@@ -102,8 +147,8 @@ class OperationController extends AbstractController
         int $id,
         Request $request,
         OperationRepository $repo,
-        CategoryRepository $categoryRepo,
-        EntityManagerInterface $em
+        EntityManagerInterface $em,
+        CategoryRepository $categoryRepo
     ): JsonResponse {
         $operation = $repo->find($id);
 
@@ -113,17 +158,13 @@ class OperationController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-        if (!empty($data['label']))       $operation->setLabel($data['label']);
-        if (isset($data['amount']))       $operation->setAmount($data['amount']);
-        if (!empty($data['date']))        $operation->setDate(new \DateTime($data['date']));
-        if (!empty($data['category_id'])) {
+        if (isset($data['label'])) $operation->setLabel($data['label']);
+        if (isset($data['amount'])) $operation->setAmount((string) $data['amount']);
+        if (isset($data['date'])) $operation->setDate(new \DateTime($data['date']));
+        if (isset($data['category_id'])) {
             $category = $categoryRepo->find($data['category_id']);
-            if (!$category) {
-                return $this->json(['error' => 'Category not found'], 404);
-            }
-            $operation->setCategory($category);
+            if ($category) $operation->setCategory($category);
         }
-        $operation->setUpdatedAt(new \DateTime());
 
         $em->flush();
 
@@ -154,6 +195,6 @@ class OperationController extends AbstractController
         $em->remove($operation);
         $em->flush();
 
-        return $this->json(['message' => 'Operation deleted'], 200);
+        return $this->json(['message' => 'Operation deleted']);
     }
 }
