@@ -7,6 +7,13 @@ import Navbar from '../../components/Navbar';
 import type { Operation, Category } from '../../types/index';
 import api from '../../services/api';
 
+interface MonthlySummary {
+  month: string;
+  income: number;
+  expense: number;
+  balance: number;
+}
+
 function getCurrentMonth() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -28,13 +35,6 @@ function getNextMonth(month: string) {
   const [year, m] = month.split('-');
   const date = new Date(Number(year), Number(m));
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-}
-
-interface MonthlySummary {
-  month: string;
-  income: number;
-  expense: number;
-  balance: number;
 }
 
 export default function Dashboard() {
@@ -75,10 +75,8 @@ export default function Dashboard() {
   const totalIncome = filtered.filter(o => Number(o.amount) > 0).reduce((sum, o) => sum + Number(o.amount), 0);
   const totalExpense = filtered.filter(o => Number(o.amount) < 0).reduce((sum, o) => sum + Number(o.amount), 0);
 
-  // Solde cumulatif jusqu'au mois affiché
-  const cumulativeBalance = summary
-    .filter(s => s.month <= currentMonth)
-    .reduce((sum, s) => sum + s.balance, 0);
+  // Solde actuel = toutes les opérations sans filtre
+  const currentBalance = summary.reduce((sum, s) => sum + s.balance, 0);
 
   const amountClass = (amount: number) => amount >= 0 ? 'text-green-600' : 'text-red-500';
   const amountPrefix = (amount: number) => amount >= 0 ? '+' : '';
@@ -89,6 +87,15 @@ export default function Dashboard() {
       <Navbar />
 
       <main className="max-w-5xl mx-auto px-4 py-6">
+
+        {/* Solde actuel */}
+        <div className="bg-white rounded-xl shadow p-5 mb-4">
+          <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Current Balance</p>
+          <p className={`text-3xl font-bold ${amountClass(currentBalance)}`}>
+            {amountPrefix(currentBalance)}{currentBalance.toFixed(2)} €
+          </p>
+          <p className="text-xs text-gray-400 mt-1">All your operations</p>
+        </div>
 
         {/* Sélecteur de mois */}
         <div className="flex items-center justify-between mb-6">
@@ -118,23 +125,6 @@ export default function Dashboard() {
           >
             Next →
           </button>
-        </div>
-
-        {/* Solde cumulatif */}
-        <div className="bg-white rounded-xl shadow p-5 mb-4 flex justify-between items-center">
-          <div>
-            <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Cumulative Balance</p>
-            <p className={`text-3xl font-bold ${amountClass(cumulativeBalance)}`}>
-              {amountPrefix(cumulativeBalance)}{cumulativeBalance.toFixed(2)} €
-            </p>
-            <p className="text-xs text-gray-400 mt-1">All operations up to {getMonthLabel(currentMonth)}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">This month</p>
-            <p className={`text-xl font-bold ${amountClass(total)}`}>
-              {amountPrefix(total)}{total.toFixed(2)} €
-            </p>
-          </div>
         </div>
 
         {/* Résumé du mois */}

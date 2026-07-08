@@ -134,7 +134,7 @@ export default function BudgetPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                 <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#666' }} />
                 <YAxis tick={{ fontSize: 12, fill: '#666' }} />
-                <Tooltip formatter={(value: number) => `${value.toFixed(2)} €`} />
+                <Tooltip formatter={(value) => `${Number(value).toFixed(2)} €`} />
                 <Legend />
                 <Bar dataKey="Income" fill="#00C49A" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="Expense" fill="#E74C3C" radius={[4, 4, 0, 0]} />
