@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { motion } from 'framer-motion';
 import Navbar from '../../components/Navbar';
 import type { Operation, Category } from '../../types/index';
 import api from '../../services/api';
@@ -29,6 +30,13 @@ function getNextMonth(month: string) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
+interface MonthlySummary {
+  month: string;
+  income: number;
+  expense: number;
+  balance: number;
+}
+
 export default function Dashboard() {
   const queryClient = useQueryClient();
   const [filterCategory, setFilterCategory] = useState<string>('');
@@ -44,10 +52,16 @@ export default function Dashboard() {
     queryFn: () => api.get('/api/categories').then(r => r.data),
   });
 
+  const { data: summary = [] } = useQuery<MonthlySummary[]>({
+    queryKey: ['operations-summary'],
+    queryFn: () => api.get('/api/operations/summary').then(r => r.data),
+  });
+
   const deleteOp = useMutation({
     mutationFn: (id: number) => api.delete(`/api/operations/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['operations', currentMonth] });
+      queryClient.invalidateQueries({ queryKey: ['operations-summary'] });
       toast.success('Operation deleted successfully!');
     },
     onError: () => toast.error('Failed to delete operation'),
@@ -60,6 +74,11 @@ export default function Dashboard() {
   const total = filtered.reduce((sum, o) => sum + Number(o.amount), 0);
   const totalIncome = filtered.filter(o => Number(o.amount) > 0).reduce((sum, o) => sum + Number(o.amount), 0);
   const totalExpense = filtered.filter(o => Number(o.amount) < 0).reduce((sum, o) => sum + Number(o.amount), 0);
+
+  // Solde cumulatif jusqu'au mois affiché
+  const cumulativeBalance = summary
+    .filter(s => s.month <= currentMonth)
+    .reduce((sum, s) => sum + s.balance, 0);
 
   const amountClass = (amount: number) => amount >= 0 ? 'text-green-600' : 'text-red-500';
   const amountPrefix = (amount: number) => amount >= 0 ? '+' : '';
@@ -101,21 +120,32 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Résumé du mois */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="bg-white rounded-xl shadow p-4 text-center">
-            <p className="text-sm text-gray-400 mb-1">Income</p>
-            <p className="text-xl font-bold text-green-600">+{totalIncome.toFixed(2)} €</p>
+        {/* Solde cumulatif */}
+        <div className="bg-white rounded-xl shadow p-5 mb-4 flex justify-between items-center">
+          <div>
+            <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">Cumulative Balance</p>
+            <p className={`text-3xl font-bold ${amountClass(cumulativeBalance)}`}>
+              {amountPrefix(cumulativeBalance)}{cumulativeBalance.toFixed(2)} €
+            </p>
+            <p className="text-xs text-gray-400 mt-1">All operations up to {getMonthLabel(currentMonth)}</p>
           </div>
-          <div className="bg-white rounded-xl shadow p-4 text-center">
-            <p className="text-sm text-gray-400 mb-1">Expense</p>
-            <p className="text-xl font-bold text-red-500">{totalExpense.toFixed(2)} €</p>
-          </div>
-          <div className="bg-white rounded-xl shadow p-4 text-center">
-            <p className="text-sm text-gray-400 mb-1">Balance</p>
+          <div className="text-right">
+            <p className="text-xs text-gray-400 uppercase tracking-widest mb-1">This month</p>
             <p className={`text-xl font-bold ${amountClass(total)}`}>
               {amountPrefix(total)}{total.toFixed(2)} €
             </p>
+          </div>
+        </div>
+
+        {/* Résumé du mois */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="bg-white rounded-xl shadow p-4 text-center">
+            <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide">Income</p>
+            <p className="text-xl font-bold text-green-600">+{totalIncome.toFixed(2)} €</p>
+          </div>
+          <div className="bg-white rounded-xl shadow p-4 text-center">
+            <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide">Expense</p>
+            <p className="text-xl font-bold text-red-500">{totalExpense.toFixed(2)} €</p>
           </div>
         </div>
 
@@ -154,7 +184,13 @@ export default function Dashboard() {
                 </thead>
                 <tbody>
                   {filtered.map((op, idx) => (
-                    <tr key={op.id} className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F5FFFE]'}>
+                    <motion.tr
+                      key={op.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: idx * 0.03 }}
+                      className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F5FFFE]'}
+                    >
                       <td className="px-6 py-3">
                         <Link to={`/operations/${op.id}`} className="text-[#156064] hover:underline font-medium">{op.label}</Link>
                       </td>
@@ -171,7 +207,7 @@ export default function Dashboard() {
                           <button onClick={() => { if (confirm('Delete this operation?')) deleteOp.mutate(op.id); }} className="text-red-500 hover:text-red-700 font-medium">Delete</button>
                         </div>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))}
                 </tbody>
                 <tfoot className="bg-gray-50 border-t">
@@ -188,8 +224,14 @@ export default function Dashboard() {
 
             {/* Mobile cards */}
             <div className="md:hidden space-y-3">
-              {filtered.map(op => (
-                <div key={op.id} className="bg-white rounded-xl shadow p-4">
+              {filtered.map((op, idx) => (
+                <motion.div
+                  key={op.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  className="bg-white rounded-xl shadow p-4"
+                >
                   <div className="flex justify-between items-start mb-2">
                     <Link to={`/operations/${op.id}`} className="font-bold text-[#156064] text-lg">{op.label}</Link>
                     <span className={`font-bold text-lg ${amountClass(Number(op.amount))}`}>
@@ -206,7 +248,7 @@ export default function Dashboard() {
                       <button onClick={() => { if (confirm('Delete this operation?')) deleteOp.mutate(op.id); }} className="text-red-500 font-medium text-sm">Delete</button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               ))}
               <div className="bg-white rounded-xl shadow p-4 flex justify-between items-center">
                 <span className="font-bold text-[#156064]">Total</span>

@@ -17,22 +17,34 @@ class BudgetController extends AbstractController
 {
     #[Route('', name: 'budget_list', methods: ['GET'])]
     public function index(
+        Request $request,
         BudgetRepository $repo,
         OperationRepository $operationRepo
     ): JsonResponse {
+        $month = $request->query->get('month');
         $budgets = $repo->findBy(['user' => $this->getUser()]);
 
-        $data = array_map(function ($b) use ($operationRepo) {
-            $operations = $operationRepo->findBy([
-                'user' => $this->getUser(),
-                'category' => $b->getCategory()
-            ]);
+        $data = array_map(function ($b) use ($operationRepo, $month) {
+            $qb = $operationRepo->createQueryBuilder('o')
+                ->where('o.user = :user')
+                ->andWhere('o.category = :category')
+                ->setParameter('user', $this->getUser())
+                ->setParameter('category', $b->getCategory());
+
+            if ($month) {
+                [$year, $m] = explode('-', $month);
+                $start = new \DateTime("$year-$m-01");
+                $end = (clone $start)->modify('last day of this month');
+                $qb->andWhere('o.date >= :start')->andWhere('o.date <= :end')
+                   ->setParameter('start', $start)
+                   ->setParameter('end', $end);
+            }
+
+            $operations = $qb->getQuery()->getResult();
 
             $spent = array_reduce($operations, function ($carry, $op) {
                 $amount = (float) $op->getAmount();
-                if ($amount < 0) {
-                    $carry += abs($amount);
-                }
+                if ($amount < 0) $carry += abs($amount);
                 return $carry;
             }, 0);
 
@@ -52,8 +64,17 @@ class BudgetController extends AbstractController
             ];
         }, $budgets);
 
-        // Solde global
-        $allOperations = $operationRepo->findBy(['user' => $this->getUser()]);
+        $allOpsQb = $operationRepo->createQueryBuilder('o')
+            ->where('o.user = :user')
+            ->setParameter('user', $this->getUser());
+
+        if ($month) {
+            [$year, $m] = explode('-', $month);
+            $end = (new \DateTime("$year-$m-01"))->modify('last day of this month');
+            $allOpsQb->andWhere('o.date <= :end')->setParameter('end', $end);
+        }
+
+        $allOperations = $allOpsQb->getQuery()->getResult();
         $totalBalance = array_reduce($allOperations, function ($carry, $op) {
             return $carry + (float) $op->getAmount();
         }, 0);
