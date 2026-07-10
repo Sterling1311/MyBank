@@ -244,7 +244,7 @@ MyBank/
 
 ## 👤 Author
 
-**Georgia Wyllan-Axial**
+**Stelian Wyllan MBA BIVEGUE**
 CDA 3ème année — L'École Multimédia — 2025
 
 ---
