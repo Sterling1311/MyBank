@@ -8,6 +8,7 @@ import OperationForm from './features/operations/OperationForm';
 import OperationDetail from './features/operations/OperationDetail';
 import CategoryPage from './features/categories/CategoryPage';
 import BudgetPage from './features/budget/BudgetPage';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ function App() {
             <Route path="/categories" element={<ProtectedRoute><CategoryPage /></ProtectedRoute>} />
             <Route path="/budget" element={<ProtectedRoute><BudgetPage /></ProtectedRoute>} />
             <Route path="*" element={<Navigate to="/login" />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>

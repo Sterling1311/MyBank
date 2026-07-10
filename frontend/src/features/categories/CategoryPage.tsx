@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Plus, Trash2, Tag, TrendingUp, TrendingDown, ArrowLeft } from 'lucide-react';
 import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import type { Category } from '../../types/index';
 import api from '../../services/api';
 
@@ -51,12 +52,11 @@ export default function CategoryPage() {
   const otherCategories = categories.filter(c => !c.type);
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA]">
+    <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
       <Navbar />
 
-      <main className="max-w-2xl mx-auto px-4 py-6">
+      <main className="max-w-2xl mx-auto px-4 py-6 flex-1 w-full">
 
-        {/* Header */}
         <div className="flex justify-between items-center mb-5">
           <div>
             {returnTo && (
@@ -76,7 +76,6 @@ export default function CategoryPage() {
           </button>
         </div>
 
-        {/* Formulaire */}
         {showForm && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -115,8 +114,6 @@ export default function CategoryPage() {
           <div className="text-center py-12 text-gray-400 text-sm">Loading...</div>
         ) : (
           <div className="space-y-4">
-
-            {/* Expenses */}
             {expenseCategories.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-2 px-1">
@@ -126,13 +123,8 @@ export default function CategoryPage() {
                 </div>
                 <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                   {expenseCategories.map((c, idx) => (
-                    <motion.div
-                      key={c.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: idx * 0.03 }}
-                      className={`flex items-center justify-between px-4 py-3 ${idx < expenseCategories.length - 1 ? 'border-b border-gray-50' : ''}`}
-                    >
+                    <motion.div key={c.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.03 }}
+                      className={`flex items-center justify-between px-4 py-3 ${idx < expenseCategories.length - 1 ? 'border-b border-gray-50' : ''}`}>
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-red-50 rounded-xl flex items-center justify-center">
                           <Tag size={13} className="text-red-400" />
@@ -149,7 +141,6 @@ export default function CategoryPage() {
               </div>
             )}
 
-            {/* Income */}
             {incomeCategories.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-2 px-1">
@@ -159,13 +150,8 @@ export default function CategoryPage() {
                 </div>
                 <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                   {incomeCategories.map((c, idx) => (
-                    <motion.div
-                      key={c.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: idx * 0.03 }}
-                      className={`flex items-center justify-between px-4 py-3 ${idx < incomeCategories.length - 1 ? 'border-b border-gray-50' : ''}`}
-                    >
+                    <motion.div key={c.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.03 }}
+                      className={`flex items-center justify-between px-4 py-3 ${idx < incomeCategories.length - 1 ? 'border-b border-gray-50' : ''}`}>
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-green-50 rounded-xl flex items-center justify-center">
                           <Tag size={13} className="text-green-400" />
@@ -182,7 +168,6 @@ export default function CategoryPage() {
               </div>
             )}
 
-            {/* Other */}
             {otherCategories.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-2 px-1">
@@ -191,13 +176,8 @@ export default function CategoryPage() {
                 </div>
                 <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                   {otherCategories.map((c, idx) => (
-                    <motion.div
-                      key={c.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: idx * 0.03 }}
-                      className={`flex items-center justify-between px-4 py-3 ${idx < otherCategories.length - 1 ? 'border-b border-gray-50' : ''}`}
-                    >
+                    <motion.div key={c.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: idx * 0.03 }}
+                      className={`flex items-center justify-between px-4 py-3 ${idx < otherCategories.length - 1 ? 'border-b border-gray-50' : ''}`}>
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-gray-50 rounded-xl flex items-center justify-center">
                           <Tag size={13} className="text-gray-400" />
@@ -231,6 +211,7 @@ export default function CategoryPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

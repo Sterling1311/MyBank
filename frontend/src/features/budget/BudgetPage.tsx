@@ -4,6 +4,7 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis
 import { motion } from 'framer-motion';
 import { Wallet, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
 import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import type { Category, Operation } from '../../types/index';
 import api from '../../services/api';
 
@@ -33,7 +34,7 @@ const COLORS = ['#156064', '#00C49A', '#F8E16C', '#E74C3C', '#9B59B6', '#3498DB'
 function getMonthLabel(month: string) {
   const [year, m] = month.split('-');
   const date = new Date(Number(year), Number(m) - 1);
-  return date.toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
+  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 }
 
 export default function BudgetPage() {
@@ -114,12 +115,11 @@ export default function BudgetPage() {
     : [];
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA]">
+    <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
       <Navbar />
 
-      <main className="max-w-2xl mx-auto px-4 py-6">
+      <main className="max-w-2xl mx-auto px-6 py-8 flex-1 w-full">
 
-        {/* Solde total */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -135,7 +135,6 @@ export default function BudgetPage() {
           <p className="text-xs opacity-50 mt-2">All your operations combined</p>
         </motion.div>
 
-        {/* Graphique évolution */}
         {chartData.length > 1 && (
           <div className="bg-white rounded-2xl p-5 mb-5 shadow-sm">
             <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">Monthly Evolution</h3>
@@ -155,7 +154,6 @@ export default function BudgetPage() {
           </div>
         )}
 
-        {/* Pie chart */}
         {pieData.length > 0 && (
           <div className="bg-white rounded-2xl p-5 mb-5 shadow-sm">
             <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">Spending by Category</h3>
@@ -176,7 +174,6 @@ export default function BudgetPage() {
           </div>
         )}
 
-        {/* Budget Tracker */}
         <div className="mb-5">
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Budget Tracker</h3>
@@ -189,7 +186,6 @@ export default function BudgetPage() {
             </button>
           </div>
 
-          {/* Formulaire d'allocation */}
           {showForm && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
@@ -267,7 +263,6 @@ export default function BudgetPage() {
                     <span>Left <span className={`font-medium ${b.remaining < 0 ? 'text-red-500' : 'text-green-500'}`}>{b.remaining.toFixed(2)} €</span></span>
                   </div>
 
-                  {/* Historique opérations */}
                   {selectedBudget?.id === b.id && (
                     <motion.div
                       initial={{ opacity: 0 }}
@@ -299,6 +294,7 @@ export default function BudgetPage() {
           )}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

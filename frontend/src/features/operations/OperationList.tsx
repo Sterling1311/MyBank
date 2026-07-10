@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { Plus, Filter, TrendingUp, TrendingDown, Wallet, Pencil, Trash2 } from 'lucide-react';
 import Navbar from '../../components/Navbar';
+import Footer from '../../components/Footer';
 import type { Operation, Category } from '../../types/index';
 import api from '../../services/api';
 
@@ -23,7 +24,7 @@ function getCurrentMonth() {
 function getMonthLabel(month: string) {
   const [year, m] = month.split('-');
   const date = new Date(Number(year), Number(m) - 1);
-  return date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+  return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 }
 
 function getPrevMonth(month: string) {
@@ -82,12 +83,11 @@ export default function Dashboard() {
   const isCurrentMonth = currentMonth === getCurrentMonth();
 
   return (
-    <div className="min-h-screen bg-[#F7F8FA]">
+    <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
       <Navbar />
 
-      <main className="max-w-2xl mx-auto px-4 py-6">
+      <main className="max-w-2xl mx-auto px-4 py-6 flex-1 w-full">
 
-        {/* Solde actuel */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -97,7 +97,7 @@ export default function Dashboard() {
             <Wallet size={16} className="opacity-70" />
             <p className="text-sm opacity-70 uppercase tracking-widest">Current Balance</p>
           </div>
-          <p className="text-4xl font-bold mb-4">
+          <p className={`text-4xl font-bold mb-4 ${currentBalance >= 0 ? 'text-white' : 'text-red-300'}`}>
             {amountPrefix(currentBalance)}{currentBalance.toFixed(2)} €
           </p>
           <div className="flex gap-4">
@@ -118,7 +118,6 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        {/* Sélecteur de mois */}
         <div className="flex items-center justify-between mb-5">
           <button
             onClick={() => setCurrentMonth(getPrevMonth(currentMonth))}
@@ -145,7 +144,17 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* Filtre + bouton ajout */}
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div className="bg-white rounded-xl shadow-sm p-4 text-center">
+            <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide">Income</p>
+            <p className="text-xl font-bold text-green-500">+{totalIncome.toFixed(2)} €</p>
+          </div>
+          <div className="bg-white rounded-xl shadow-sm p-4 text-center">
+            <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide">Expense</p>
+            <p className="text-xl font-bold text-red-500">{totalExpense.toFixed(2)} €</p>
+          </div>
+        </div>
+
         <div className="flex gap-3 mb-5">
           <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 shadow-sm flex-1">
             <Filter size={14} className="text-gray-400" />
@@ -169,7 +178,6 @@ export default function Dashboard() {
           </Link>
         </div>
 
-        {/* Liste des opérations */}
         {loadingOps ? (
           <div className="text-center py-12 text-gray-400">Loading...</div>
         ) : filtered.length === 0 ? (
@@ -179,7 +187,6 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className="space-y-3">
-            {/* Total */}
             <div className="flex justify-between items-center px-1 mb-1">
               <span className="text-xs text-gray-400 uppercase tracking-wide">This month</span>
               <span className={`text-sm font-bold ${amountClass(total)}`}>
@@ -229,6 +236,7 @@ export default function Dashboard() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }
