@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Budget;
+use App\Entity\User;
 use App\Repository\BudgetRepository;
 use App\Repository\CategoryRepository;
 use App\Repository\OperationRepository;
@@ -21,14 +22,16 @@ class BudgetController extends AbstractController
         BudgetRepository $repo,
         OperationRepository $operationRepo
     ): JsonResponse {
+        /** @var User $user */
+        $user = $this->getUser();
         $month = $request->query->get('month');
-        $budgets = $repo->findBy(['user' => $this->getUser()]);
+        $budgets = $repo->findBy(['user' => $user]);
 
-        $data = array_map(function ($b) use ($operationRepo, $month) {
+        $data = array_map(function ($b) use ($operationRepo, $month, $user) {
             $qb = $operationRepo->createQueryBuilder('o')
                 ->where('o.user = :user')
                 ->andWhere('o.category = :category')
-                ->setParameter('user', $this->getUser())
+                ->setParameter('user', $user)
                 ->setParameter('category', $b->getCategory());
 
             if ($month) {
@@ -66,7 +69,7 @@ class BudgetController extends AbstractController
 
         $allOpsQb = $operationRepo->createQueryBuilder('o')
             ->where('o.user = :user')
-            ->setParameter('user', $this->getUser());
+            ->setParameter('user', $user);
 
         if ($month) {
             [$year, $m] = explode('-', $month);
@@ -92,6 +95,8 @@ class BudgetController extends AbstractController
         CategoryRepository $categoryRepo,
         BudgetRepository $budgetRepo
     ): JsonResponse {
+        /** @var User $user */
+        $user = $this->getUser();
         $data = json_decode($request->getContent(), true);
 
         if (empty($data['category_id']) || !isset($data['allocated_amount'])) {
@@ -104,7 +109,7 @@ class BudgetController extends AbstractController
         }
 
         $existing = $budgetRepo->findOneBy([
-            'user' => $this->getUser(),
+            'user' => $user,
             'category' => $category
         ]);
 
@@ -121,7 +126,7 @@ class BudgetController extends AbstractController
         $budget = new Budget();
         $budget->setAllocatedAmount($data['allocated_amount']);
         $budget->setCategory($category);
-        $budget->setUser($this->getUser());
+        $budget->setUser($user);
         $budget->setCreatedAt(new \DateTime());
 
         $em->persist($budget);
@@ -140,9 +145,11 @@ class BudgetController extends AbstractController
         BudgetRepository $repo,
         EntityManagerInterface $em
     ): JsonResponse {
+        /** @var User $user */
+        $user = $this->getUser();
         $budget = $repo->find($id);
 
-        if (!$budget || $budget->getUser() !== $this->getUser()) {
+        if (!$budget || $budget->getUser() !== $user) {
             return $this->json(['error' => 'Budget not found'], 404);
         }
 

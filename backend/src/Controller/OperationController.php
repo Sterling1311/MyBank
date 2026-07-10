@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Operation;
+use App\Entity\User;
 use App\Repository\CategoryRepository;
 use App\Repository\OperationRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,7 +18,9 @@ class OperationController extends AbstractController
     #[Route('', name: 'operation_list', methods: ['GET'])]
     public function index(Request $request, OperationRepository $repo): JsonResponse
     {
-        $month = $request->query->get('month'); // format: 2025-07
+        /** @var User $user */
+        $user = $this->getUser();
+        $month = $request->query->get('month');
 
         if ($month) {
             [$year, $m] = explode('-', $month);
@@ -28,7 +31,7 @@ class OperationController extends AbstractController
                 ->where('o.user = :user')
                 ->andWhere('o.date >= :start')
                 ->andWhere('o.date <= :end')
-                ->setParameter('user', $this->getUser())
+                ->setParameter('user', $user)
                 ->setParameter('start', $start)
                 ->setParameter('end', $end)
                 ->orderBy('o.date', 'DESC')
@@ -36,7 +39,7 @@ class OperationController extends AbstractController
                 ->getResult();
         } else {
             $operations = $repo->findBy(
-                ['user' => $this->getUser()],
+                ['user' => $user],
                 ['date' => 'DESC']
             );
         }
@@ -59,7 +62,9 @@ class OperationController extends AbstractController
     #[Route('/summary', name: 'operation_summary', methods: ['GET'])]
     public function summary(OperationRepository $repo): JsonResponse
     {
-        $operations = $repo->findBy(['user' => $this->getUser()]);
+        /** @var User $user */
+        $user = $this->getUser();
+        $operations = $repo->findBy(['user' => $user]);
 
         $summary = [];
         foreach ($operations as $op) {
@@ -87,6 +92,8 @@ class OperationController extends AbstractController
         EntityManagerInterface $em,
         CategoryRepository $categoryRepo
     ): JsonResponse {
+        /** @var User $user */
+        $user = $this->getUser();
         $data = json_decode($request->getContent(), true);
 
         if (empty($data['label']) || !isset($data['amount']) || empty($data['date']) || empty($data['category_id'])) {
@@ -103,7 +110,7 @@ class OperationController extends AbstractController
         $operation->setAmount((string) $data['amount']);
         $operation->setDate(new \DateTime($data['date']));
         $operation->setCategory($category);
-        $operation->setUser($this->getUser());
+        $operation->setUser($user);
         $operation->setCreatedAt(new \DateTime());
 
         $em->persist($operation);
@@ -124,9 +131,11 @@ class OperationController extends AbstractController
     #[Route('/{id}', name: 'operation_show', methods: ['GET'])]
     public function show(int $id, OperationRepository $repo): JsonResponse
     {
+        /** @var User $user */
+        $user = $this->getUser();
         $operation = $repo->find($id);
 
-        if (!$operation || $operation->getUser() !== $this->getUser()) {
+        if (!$operation || $operation->getUser() !== $user) {
             return $this->json(['error' => 'Operation not found'], 404);
         }
 
@@ -150,9 +159,11 @@ class OperationController extends AbstractController
         EntityManagerInterface $em,
         CategoryRepository $categoryRepo
     ): JsonResponse {
+        /** @var User $user */
+        $user = $this->getUser();
         $operation = $repo->find($id);
 
-        if (!$operation || $operation->getUser() !== $this->getUser()) {
+        if (!$operation || $operation->getUser() !== $user) {
             return $this->json(['error' => 'Operation not found'], 404);
         }
 
@@ -186,9 +197,11 @@ class OperationController extends AbstractController
         OperationRepository $repo,
         EntityManagerInterface $em
     ): JsonResponse {
+        /** @var User $user */
+        $user = $this->getUser();
         $operation = $repo->find($id);
 
-        if (!$operation || $operation->getUser() !== $this->getUser()) {
+        if (!$operation || $operation->getUser() !== $user) {
             return $this->json(['error' => 'Operation not found'], 404);
         }
 
