@@ -5,7 +5,6 @@ import { LayoutDashboard, PiggyBank, Tag, LogOut } from "lucide-react";
 export default function Navbar() {
   const { logout } = useAuth();
   const location = useLocation();
-
   const isActive = (path: string) => location.pathname === path;
 
   const links = [
@@ -16,8 +15,8 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Desktop navbar */}
-      <nav className="hidden md:flex bg-white border-b border-gray-100 px-8 py-4 justify-between items-center shadow-sm">
+      {/* Desktop navbar — fixed */}
+      <nav className="hidden md:flex bg-white border-b border-gray-100 px-8 py-4 justify-between items-center shadow-sm fixed top-0 left-0 right-0 z-50">
         <Link to="/dashboard" className="flex items-center gap-2">
           <span className="text-2xl">🏦</span>
           <span className="text-xl font-bold text-[#156064]">MyBank</span>
@@ -39,10 +38,16 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile top bar - logo seulement */}
-      <nav className="md:hidden bg-white border-b border-gray-100 px-4 py-3 flex justify-center items-center shadow-sm">
+      {/* Spacer desktop */}
+      <div className="hidden md:block h-16" />
+
+      {/* Mobile top bar — fixed */}
+      <nav className="md:hidden bg-white border-b border-gray-100 px-4 py-3 flex justify-center items-center shadow-sm fixed top-0 left-0 right-0 z-50">
         <Link to="/dashboard" className="text-xl font-bold text-[#156064]">🏦 MyBank</Link>
       </nav>
+
+      {/* Spacer mobile top */}
+      <div className="md:hidden h-14" />
 
       {/* Mobile bottom navigation */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-lg z-50">
@@ -63,7 +68,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Spacer pour la bottom nav */}
+      {/* Spacer bottom nav */}
       <div className="md:hidden h-16" />
     </>
   );

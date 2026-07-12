@@ -80,7 +80,10 @@ export default function Dashboard() {
 
   const amountClass = (amount: number) => amount >= 0 ? 'text-green-500' : 'text-red-500';
   const amountPrefix = (amount: number) => amount >= 0 ? '+' : '';
-  const isCurrentMonth = currentMonth === getCurrentMonth();
+
+  // Catégories utilisées ce mois
+  const usedCategoryIds = new Set(operations.map(o => o.category.id));
+  const monthCategories = categories.filter(c => usedCategoryIds.has(c.id));
 
   return (
     <div className="min-h-screen bg-[#F7F8FA] flex flex-col">
@@ -88,6 +91,7 @@ export default function Dashboard() {
 
       <main className="max-w-2xl mx-auto px-4 py-6 flex-1 w-full">
 
+        {/* Solde actuel */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -118,6 +122,7 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
+        {/* Sélecteur de mois */}
         <div className="flex items-center justify-between mb-5">
           <button
             onClick={() => setCurrentMonth(getPrevMonth(currentMonth))}
@@ -129,7 +134,7 @@ export default function Dashboard() {
             <h2 className="text-base font-semibold text-[#156064] capitalize">
               {getMonthLabel(currentMonth)}
             </h2>
-            {!isCurrentMonth && (
+            {currentMonth !== getCurrentMonth() && (
               <button onClick={() => setCurrentMonth(getCurrentMonth())} className="text-xs text-[#00C49A] hover:underline">
                 Today
               </button>
@@ -137,24 +142,13 @@ export default function Dashboard() {
           </div>
           <button
             onClick={() => setCurrentMonth(getNextMonth(currentMonth))}
-            disabled={isCurrentMonth}
-            className="w-9 h-9 flex items-center justify-center bg-white rounded-xl shadow-sm hover:shadow-md transition-all text-[#156064] font-bold disabled:opacity-30"
+            className="w-9 h-9 flex items-center justify-center bg-white rounded-xl shadow-sm hover:shadow-md transition-all text-[#156064] font-bold"
           >
             ›
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-white rounded-xl shadow-sm p-4 text-center">
-            <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide">Income</p>
-            <p className="text-xl font-bold text-green-500">+{totalIncome.toFixed(2)} €</p>
-          </div>
-          <div className="bg-white rounded-xl shadow-sm p-4 text-center">
-            <p className="text-xs text-gray-400 mb-1 uppercase tracking-wide">Expense</p>
-            <p className="text-xl font-bold text-red-500">{totalExpense.toFixed(2)} €</p>
-          </div>
-        </div>
-
+        {/* Filtre + bouton ajout */}
         <div className="flex gap-3 mb-5">
           <div className="flex items-center gap-2 bg-white rounded-xl px-3 py-2 shadow-sm flex-1">
             <Filter size={14} className="text-gray-400" />
@@ -164,7 +158,7 @@ export default function Dashboard() {
               className="text-sm text-gray-600 bg-transparent outline-none flex-1"
             >
               <option value="">All Categories</option>
-              {categories.map(c => (
+              {monthCategories.map(c => (
                 <option key={c.id} value={c.id}>{c.name}</option>
               ))}
             </select>
@@ -178,6 +172,7 @@ export default function Dashboard() {
           </Link>
         </div>
 
+        {/* Liste */}
         {loadingOps ? (
           <div className="text-center py-12 text-gray-400">Loading...</div>
         ) : filtered.length === 0 ? (
@@ -194,45 +189,101 @@ export default function Dashboard() {
               </span>
             </div>
 
-            {filtered.map((op, idx) => (
-              <motion.div
-                key={op.id}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.04 }}
-                className="bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <Link to={`/operations/${op.id}`} className="font-semibold text-gray-800 hover:text-[#156064] transition-colors">
-                      {op.label}
-                    </Link>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs bg-[#F8E16C] text-[#156064] px-2 py-0.5 rounded-full font-medium">
-                        {op.category.name}
-                      </span>
-                      <span className="text-xs text-gray-400">{op.date}</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`font-bold text-base ${amountClass(Number(op.amount))}`}>
+            {/* Desktop */}
+            <div className="hidden md:block bg-white rounded-2xl shadow-sm overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-[#156064] text-white">
+                  <tr>
+                    <th className="text-left px-6 py-3 text-sm">Label</th>
+                    <th className="text-left px-6 py-3 text-sm">Amount</th>
+                    <th className="text-left px-6 py-3 text-sm">Date</th>
+                    <th className="text-left px-6 py-3 text-sm">Category</th>
+                    <th className="text-left px-6 py-3 text-sm">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((op, idx) => (
+                    <motion.tr
+                      key={op.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: idx * 0.03 }}
+                      className={idx % 2 === 0 ? 'bg-white' : 'bg-[#F5FFFE]'}
+                    >
+                      <td className="px-6 py-3">
+                        <Link to={`/operations/${op.id}`} className="text-[#156064] hover:underline font-medium">{op.label}</Link>
+                      </td>
+                      <td className={`px-6 py-3 font-bold ${amountClass(Number(op.amount))}`}>
+                        {amountPrefix(Number(op.amount))}{Number(op.amount).toFixed(2)} €
+                      </td>
+                      <td className="px-6 py-3 text-gray-600">{op.date}</td>
+                      <td className="px-6 py-3">
+                        <span className="bg-[#F8E16C] text-[#156064] px-2 py-1 rounded-full text-xs font-medium">{op.category.name}</span>
+                      </td>
+                      <td className="px-6 py-3">
+                        <div className="flex gap-2">
+                          <Link to={`/operations/${op.id}/edit`} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+                            <Pencil size={13} className="text-gray-400" />
+                          </Link>
+                          <button onClick={() => { if (confirm('Delete this operation?')) deleteOp.mutate(op.id); }} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 transition-colors">
+                            <Trash2 size={13} className="text-red-400" />
+                          </button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-gray-50 border-t">
+                  <tr>
+                    <td className="px-6 py-3 font-bold text-[#156064]">Total</td>
+                    <td className={`px-6 py-3 font-bold ${amountClass(total)}`}>
+                      {amountPrefix(total)}{total.toFixed(2)} €
+                    </td>
+                    <td colSpan={3}></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+
+            {/* Mobile cards */}
+            <div className="md:hidden space-y-3">
+              {filtered.map((op, idx) => (
+                <motion.div
+                  key={op.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                  className="bg-white rounded-2xl shadow-sm p-4"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <Link to={`/operations/${op.id}`} className="font-semibold text-gray-800 hover:text-[#156064]">{op.label}</Link>
+                    <span className={`font-bold ${amountClass(Number(op.amount))}`}>
                       {amountPrefix(Number(op.amount))}{Number(op.amount).toFixed(2)} €
                     </span>
-                    <div className="flex gap-1">
-                      <Link to={`/operations/${op.id}/edit`}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors">
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <div className="flex gap-2 items-center">
+                      <span className="bg-[#F8E16C] text-[#156064] px-2 py-0.5 rounded-full text-xs font-medium">{op.category.name}</span>
+                      <span className="text-gray-400 text-xs">{op.date}</span>
+                    </div>
+                    <div className="flex gap-2">
+                      <Link to={`/operations/${op.id}/edit`} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100">
                         <Pencil size={13} className="text-gray-400" />
                       </Link>
-                      <button
-                        onClick={() => { if (confirm('Delete?')) deleteOp.mutate(op.id); }}
-                        className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 transition-colors">
+                      <button onClick={() => { if (confirm('Delete this operation?')) deleteOp.mutate(op.id); }} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50">
                         <Trash2 size={13} className="text-red-400" />
                       </button>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))}
+              <div className="bg-white rounded-xl shadow-sm p-4 flex justify-between items-center">
+                <span className="font-bold text-[#156064]">Total</span>
+                <span className={`font-bold ${amountClass(total)}`}>
+                  {amountPrefix(total)}{total.toFixed(2)} €
+                </span>
+              </div>
+            </div>
           </div>
         )}
       </main>

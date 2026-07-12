@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Plus, Trash2, Tag, TrendingUp, TrendingDown, ArrowLeft } from 'lucide-react';
+import { Plus, Trash2, Tag, TrendingUp, TrendingDown, ArrowLeft, X } from 'lucide-react';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import type { Category } from '../../types/index';
@@ -39,6 +39,7 @@ export default function CategoryPage() {
   const deleteMutation = useMutation({
     mutationFn: (id: number) => api.delete(`/api/categories/${id}`),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
+    onError: () => alert('Cannot delete this category — it has operations linked to it.'),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -57,6 +58,7 @@ export default function CategoryPage() {
 
       <main className="max-w-2xl mx-auto px-4 py-6 flex-1 w-full">
 
+        {/* Header */}
         <div className="flex justify-between items-center mb-5">
           <div>
             {returnTo && (
@@ -71,11 +73,12 @@ export default function CategoryPage() {
             onClick={() => setShowForm(!showForm)}
             className="flex items-center gap-1 bg-[#00C49A] text-white px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-[#156064] transition-colors"
           >
-            <Plus size={13} />
-            New
+            {showForm ? <X size={13} /> : <Plus size={13} />}
+            {showForm ? 'Close' : 'New'}
           </button>
         </div>
 
+        {/* Formulaire */}
         {showForm && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -114,6 +117,7 @@ export default function CategoryPage() {
           <div className="text-center py-12 text-gray-400 text-sm">Loading...</div>
         ) : (
           <div className="space-y-4">
+
             {expenseCategories.length > 0 && (
               <div>
                 <div className="flex items-center gap-2 mb-2 px-1">
@@ -131,7 +135,11 @@ export default function CategoryPage() {
                         </div>
                         <span className="text-sm font-medium text-gray-700">{c.name}</span>
                       </div>
-                      <button onClick={() => { if (confirm(`Delete "${c.name}"?`)) deleteMutation.mutate(c.id); }}
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Are you sure you want to delete "${c.name}"? This action cannot be undone.`))
+                            deleteMutation.mutate(c.id);
+                        }}
                         className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 transition-colors">
                         <Trash2 size={13} className="text-gray-300 hover:text-red-400" />
                       </button>
@@ -158,7 +166,11 @@ export default function CategoryPage() {
                         </div>
                         <span className="text-sm font-medium text-gray-700">{c.name}</span>
                       </div>
-                      <button onClick={() => { if (confirm(`Delete "${c.name}"?`)) deleteMutation.mutate(c.id); }}
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Are you sure you want to delete "${c.name}"? This action cannot be undone.`))
+                            deleteMutation.mutate(c.id);
+                        }}
                         className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 transition-colors">
                         <Trash2 size={13} className="text-gray-300 hover:text-red-400" />
                       </button>
@@ -184,7 +196,11 @@ export default function CategoryPage() {
                         </div>
                         <span className="text-sm font-medium text-gray-700">{c.name}</span>
                       </div>
-                      <button onClick={() => { if (confirm(`Delete "${c.name}"?`)) deleteMutation.mutate(c.id); }}
+                      <button
+                        onClick={() => {
+                          if (window.confirm(`Are you sure you want to delete "${c.name}"? This action cannot be undone.`))
+                            deleteMutation.mutate(c.id);
+                        }}
                         className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 transition-colors">
                         <Trash2 size={13} className="text-gray-300 hover:text-red-400" />
                       </button>

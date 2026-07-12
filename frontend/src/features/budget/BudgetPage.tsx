@@ -99,10 +99,12 @@ export default function BudgetPage() {
   const balance = budgetData?.total_balance ?? 0;
   const balancePositive = balance >= 0;
 
-  const pieData = (budgetData?.budgets ?? []).map(b => ({
-    name: b.category.name,
-    value: b.spent,
-  }));
+  const pieData = (budgetData?.budgets ?? [])
+    .filter(b => b.spent > 0)
+    .map(b => ({
+      name: b.category.name,
+      value: b.spent,
+    }));
 
   const chartData = summary.slice(-6).map(s => ({
     month: getMonthLabel(s.month),
@@ -120,6 +122,7 @@ export default function BudgetPage() {
 
       <main className="max-w-2xl mx-auto px-6 py-8 flex-1 w-full">
 
+        {/* Solde total */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -135,6 +138,7 @@ export default function BudgetPage() {
           <p className="text-xs opacity-50 mt-2">All your operations combined</p>
         </motion.div>
 
+        {/* Graphique évolution */}
         {chartData.length > 1 && (
           <div className="bg-white rounded-2xl p-5 mb-5 shadow-sm">
             <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">Monthly Evolution</h3>
@@ -154,9 +158,15 @@ export default function BudgetPage() {
           </div>
         )}
 
-        {pieData.length > 0 && (
-          <div className="bg-white rounded-2xl p-5 mb-5 shadow-sm">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">Spending by Category</h3>
+        {/* Pie chart */}
+        <div className="bg-white rounded-2xl p-5 mb-5 shadow-sm">
+          <h3 className="text-sm font-semibold text-gray-700 mb-4 uppercase tracking-wide">Spending by Category</h3>
+          {pieData.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-400 text-sm mb-1">No spending data yet</p>
+              <p className="text-xs text-gray-300">Allocate a budget and add expense operations to see your chart</p>
+            </div>
+          ) : (
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
                 <Pie data={pieData} cx="50%" cy="50%" outerRadius={75} dataKey="value"
@@ -171,9 +181,10 @@ export default function BudgetPage() {
                   contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
               </PieChart>
             </ResponsiveContainer>
-          </div>
-        )}
+          )}
+        </div>
 
+        {/* Budget Tracker */}
         <div className="mb-5">
           <div className="flex justify-between items-center mb-3">
             <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Budget Tracker</h3>
@@ -182,7 +193,7 @@ export default function BudgetPage() {
               className="flex items-center gap-1 bg-[#00C49A] text-white px-3 py-1.5 rounded-xl text-xs font-medium hover:bg-[#156064] transition-colors"
             >
               <Plus size={13} />
-              Allocate
+              {showForm ? 'Close' : 'Allocate'}
             </button>
           </div>
 
@@ -215,7 +226,10 @@ export default function BudgetPage() {
           {isLoading ? (
             <div className="text-center py-8 text-gray-400 text-sm">Loading...</div>
           ) : (budgetData?.budgets ?? []).length === 0 ? (
-            <div className="text-center py-8 text-gray-400 text-sm">No budgets yet — click Allocate to start</div>
+            <div className="text-center py-8">
+              <p className="text-gray-400 text-sm mb-1">No budgets yet</p>
+              <p className="text-xs text-gray-300">Click Allocate to set a budget for a category</p>
+            </div>
           ) : (
             <div className="space-y-3">
               {(budgetData?.budgets ?? []).map((b, idx) => (
@@ -241,7 +255,8 @@ export default function BudgetPage() {
                       <span className={`text-xs font-bold ${b.percentage_used > 100 ? 'text-red-500' : b.percentage_used > 80 ? 'text-yellow-500' : 'text-[#00C49A]'}`}>
                         {b.percentage_used}%
                       </span>
-                      <button onClick={() => { if (confirm(`Delete budget for ${b.category.name}?`)) deleteMutation.mutate(b.id); }}
+                      <button
+                        onClick={() => { if (confirm(`Delete budget for ${b.category.name}?`)) deleteMutation.mutate(b.id); }}
                         className="w-6 h-6 flex items-center justify-center rounded-lg hover:bg-red-50 transition-colors">
                         <Trash2 size={12} className="text-red-400" />
                       </button>
@@ -270,7 +285,7 @@ export default function BudgetPage() {
                       className="mt-3 pt-3 border-t border-gray-50"
                     >
                       {selectedOperations.length === 0 ? (
-                        <p className="text-xs text-gray-400 text-center py-2">No operations yet</p>
+                        <p className="text-xs text-gray-400 text-center py-2">No operations in this category yet</p>
                       ) : (
                         <div className="space-y-2">
                           {selectedOperations.map(op => (
